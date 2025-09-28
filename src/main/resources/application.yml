@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: franchise-api-management
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/franchise_db}
+server:
+  port: 8080
+
+logging:
+  level:
+    root: INFO
+    com.franchise.api: DEBUG
