@@ -220,3 +220,42 @@ mvn -DskipTests clean package
 - **No puedo agregar productos a una sucursal inactiva**: vuelve a activar la sucursal con `PATCH /api/v1/franchises/{franchiseId}/branches/{branchId}/status` antes de enviar nuevas altas.
 - **Puerto 8080 en uso**: cambia el puerto con `--server.port=9090` o ajusta `application.yml`.
 - **Advertencia de API deprecada**: compila con `mvn compile -Xlint:deprecation` para identificar el metodo y sustituirlo en el servicio correspondiente.
+
+## Buenas practicas de colaboracion (VS Code + Git)
+
+1. **Actualiza main antes de trabajar**
+   ```bash
+   git checkout master
+   git pull origin master
+   ```
+2. **Crea una rama descriptiva por funcionalidad**
+   - Convencion: `feature/<breve-descripcion>` o `fix/<breve-descripcion>`.
+   - Ejemplo (nueva vista para administrar franquicias): `feature/franchises-dashboard`.
+   - VS Code: vista Source Control → menú “…” → `Create Branch…`, escribe `feature/franchises-dashboard` y presiona Enter.
+   - Desde la terminal del proyecto:
+     ```bash
+     git checkout -b feature/franchises-dashboard
+     ```
+3. **Desarrolla y haz commits atomicos**
+   - Incluye pruebas (`mvn test`, `npm run test -- --watch=false`, etc.) antes de cada commit.
+   - Mensajes cortos y en imperativo: `git commit -m "Add password change modal"`.
+4. **Revisa tu rama antes de abrir PR**
+   ```bash
+   git status
+   git diff
+   npm run build
+   mvn test
+   ```
+5. **Sube la rama y crea Pull Request**
+   ```bash
+   git push -u origin feature/nueva-funcion
+   ```
+   Luego abre el PR en GitHub, describe alcance y pruebas realizadas.
+6. **Revisiones y merges**
+   - Al incorporar comentarios, usa nuevos commits; evita `--force` salvo coordinacion previa.
+   - Antes de mergear, haz `git pull --rebase origin master`, resuelve conflictos y vuelve a ejecutar pruebas.
+7. **Limpieza**
+   - Tras el merge, borra la rama remota y local (`git branch -d feature/...` y en GitHub → Delete Branch).
+   - Documenta los cambios relevantes en README/`docs/entregaX.md` si aplica.
+
+> Tip VS Code: habilita “Auto Fetch” para mantenerse sincronizado; usa “GitLens” para historial y “Tasks” para scripts frecuentes (build/test).
