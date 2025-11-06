@@ -5,8 +5,11 @@ import com.franchise.api.domain.Franchise;
 import com.franchise.api.domain.Product;
 import com.franchise.api.dto.BranchResponse;
 import com.franchise.api.dto.CreateBranchRequest;
+import com.franchise.api.dto.CreateProductRequest;
 import com.franchise.api.dto.CreateFranchiseRequest;
 import com.franchise.api.dto.TopProductPerBranchResponse;
+import com.franchise.api.dto.UpdateBranchStatusRequest;
+import com.franchise.api.exception.BadRequestException;
 import com.franchise.api.exception.ConflictException;
 import com.franchise.api.exception.ResourceNotFoundException;
 import com.franchise.api.repository.FranchiseRepository;
@@ -77,11 +80,12 @@ class FranchiseServiceTest {
         when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
         when(franchiseRepository.save(franchise)).thenReturn(franchise);
 
-        BranchResponse response = franchiseService.addBranch("franchise-1", new CreateBranchRequest("Centro"));
+        BranchResponse response = franchiseService.addBranch("franchise-1", new CreateBranchRequest("Centro", null));
 
         assertThat(response.name()).isEqualTo("Centro");
         assertThat(response.products()).isEmpty();
         assertThat(response.id()).isNotBlank();
+        assertThat(response.active()).isTrue();
 
         ArgumentCaptor<Franchise> captor = ArgumentCaptor.forClass(Franchise.class);
         verify(franchiseRepository).save(captor.capture());
@@ -89,11 +93,26 @@ class FranchiseServiceTest {
     }
 
     @Test
+    void addBranchShouldRespectActiveFlag() {
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .branches(new ArrayList<>())
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+        when(franchiseRepository.save(franchise)).thenReturn(franchise);
+
+        BranchResponse response = franchiseService.addBranch("franchise-1", new CreateBranchRequest("Centro", false));
+
+        assertThat(response.active()).isFalse();
+    }
+
+    @Test
     void addBranchShouldThrowWhenFranchiseMissing() {
         when(franchiseRepository.findById("missing")).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class,
-                () -> franchiseService.addBranch("missing", new CreateBranchRequest("Centro")));
+                () -> franchiseService.addBranch("missing", new CreateBranchRequest("Centro", null)));
     }
 
     @Test
@@ -121,5 +140,100 @@ class FranchiseServiceTest {
         assertThat(response.branchId()).isEqualTo("branch-1");
         assertThat(response.product().id()).isEqualTo("p2");
         assertThat(response.product().stock()).isEqualTo(25);
+    }
+
+    @Test
+    void updateBranchStatusShouldToggleActive() {
+        Branch branch = Branch.builder()
+                .id("branch-1")
+                .name("Centro")
+                .active(true)
+                .products(new ArrayList<>())
+                .build();
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .branches(new ArrayList<>(List.of(branch)))
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+        when(franchiseRepository.save(franchise)).thenReturn(franchise);
+
+        BranchResponse response = franchiseService.updateBranchStatus("franchise-1", "branch-1", new UpdateBranchStatusRequest(false));
+
+        assertThat(response.active()).isFalse();
+        verify(franchiseRepository).save(franchise);
+    }
+
+    @Test
+    void deleteBranchShouldRemoveBranch() {
+        Branch branch = Branch.builder()
+                .id("branch-1")
+                .name("Centro")
+                .products(new ArrayList<>())
+                .build();
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .branches(new ArrayList<>(List.of(branch)))
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+        when(franchiseRepository.save(franchise)).thenReturn(franchise);
+
+        franchiseService.deleteBranch("franchise-1", "branch-1");
+
+        assertThat(franchise.getBranches()).isEmpty();
+        verify(franchiseRepository).save(franchise);
+    }
+
+    @Test
+    void deleteFranchiseShouldDelegateToRepository() {
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+
+        franchiseService.deleteFranchise("franchise-1");
+
+        verify(franchiseRepository).delete(franchise);
+    }
+
+    @Test
+    void addProductShouldFailWhenBranchInactive() {
+        Branch branch = Branch.builder()
+                .id("branch-1")
+                .name("Inactive")
+                .active(false)
+                .products(new ArrayList<>())
+                .build();
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .branches(new ArrayList<>(List.of(branch)))
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+
+        assertThrows(BadRequestException.class, () ->
+                franchiseService.addProduct("franchise-1", "branch-1", new CreateProductRequest("Burger", 10)));
+    }
+
+    @Test
+    void getTopProductPerBranchShouldIgnoreInactiveBranches() {
+        Branch inactiveBranch = Branch.builder()
+                .id("branch-inactive")
+                .name("Inactive")
+                .active(false)
+                .products(new ArrayList<>(List.of(Product.builder().id("p1").name("Burger").stock(10).build())))
+                .build();
+        Franchise franchise = Franchise.builder()
+                .id("franchise-1")
+                .name("Franchise")
+                .branches(new ArrayList<>(List.of(inactiveBranch)))
+                .build();
+        when(franchiseRepository.findById("franchise-1")).thenReturn(Optional.of(franchise));
+
+        List<TopProductPerBranchResponse> topProducts = franchiseService.getTopProductPerBranch("franchise-1");
+
+        assertThat(topProducts).isEmpty();
     }
 }

@@ -35,6 +35,7 @@ public final class FranchiseMapper {
         return new BranchResponse(
                 branch.getId(),
                 branch.getName(),
+                branch.isActive(),
                 toProductResponses(branch.getProducts())
         );
     }

@@ -1,0 +1,105 @@
+<section class="page-header">
+  <div>
+    <h1>Panel de franquicias</h1>
+    <p>Gestiona la red de franquicias, sucursales y productos en tiempo real.</p>
+  </div>
+  <div class="metrics">
+    <div class="metric-card">
+      <span class="metric-label">Franquicias activas</span>
+      <span class="metric-value">{{ franchises().length }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-label">Sucursales totales</span>
+      <span class="metric-value">{{ totalBranches() }}</span>
+    </div>
+    <div class="metric-card">
+      <span class="metric-label">Productos gestionados</span>
+      <span class="metric-value">{{ totalProducts() }}</span>
+    </div>
+  </div>
+</section>
+
+<section class="layout">
+  <article class="creation-card">
+    <header>
+      <h2>Nueva franquicia</h2>
+      <p>Ingresa el nombre oficial para registrarla en el ecosistema.</p>
+    </header>
+    <form [formGroup]="createForm" (ngSubmit)="onCreateFranchise()" novalidate>
+      <label for="franchiseName">Nombre de la franquicia</label>
+      <input
+        id="franchiseName"
+        type="text"
+        formControlName="name"
+        placeholder="Ej. Fresh Market Latam"
+        [class.invalid]="createForm.controls.name.invalid && createForm.controls.name.touched"
+      />
+      <div class="field-error" *ngIf="createForm.controls.name.invalid && createForm.controls.name.touched">
+        <span *ngIf="createForm.controls.name.errors?.['required']">El nombre es obligatorio.</span>
+        <span *ngIf="createForm.controls.name.errors?.['minlength']">Debe tener al menos 3 caracteres.</span>
+      </div>
+      <button type="submit" [disabled]="creating()" class="primary">
+        {{ creating() ? 'Registrando...' : 'Registrar franquicia' }}
+      </button>
+    </form>
+    <p class="alert success" *ngIf="success()">{{ success() }}</p>
+    <p class="alert error" *ngIf="error()">{{ error() }}</p>
+  </article>
+
+  <article class="list-card">
+    <header class="list-header">
+      <div>
+        <h2>Franquicias registradas</h2>
+        <p *ngIf="!loading()">Ordenadas de la mas reciente a la mas antigua.</p>
+      </div>
+      <button type="button" class="ghost" (click)="loadFranchises()" [disabled]="loading()">
+        {{ loading() ? 'Actualizando...' : 'Actualizar' }}
+      </button>
+    </header>
+
+    <div class="table-wrapper" *ngIf="franchises().length > 0; else emptyState">
+      <table>
+        <thead>
+          <tr>
+            <th>Franquicia</th>
+            <th>Sucursales</th>
+            <th>Productos</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let franchise of franchises()">
+            <td>
+              <div class="franchise-name">
+                <strong>{{ franchise.name }}</strong>
+                <span>ID: {{ franchise.id }}</span>
+              </div>
+            </td>
+            <td>{{ franchise.branches?.length ?? 0 }}</td>
+            <td>{{ getProductCount(franchise) }}</td>
+            <td class="actions">
+              <button type="button" class="primary subtle" (click)="onNavigate(franchise)">
+                Gestionar
+              </button>
+              <button type="button" class="danger subtle" (click)="onDeleteFranchise(franchise)">
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyState>
+      <div class="empty-state" *ngIf="!loading(); else loadingState">
+        <h3>No hay franquicias registradas</h3>
+        <p>Comienza creando la primera franquicia para habilitar la red.</p>
+      </div>
+    </ng-template>
+    <ng-template #loadingState>
+      <div class="loading-state">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Cargando informacion...</p>
+      </div>
+    </ng-template>
+  </article>
+</section>

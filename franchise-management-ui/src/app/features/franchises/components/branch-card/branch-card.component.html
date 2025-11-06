@@ -1,0 +1,162 @@
+<article class="branch-card">
+  <header>
+    <div>
+      <span class="eyebrow">Sucursal</span>
+      <h3>{{ branchState()?.name }}</h3>
+      <p>ID: {{ branch.id }}</p>
+      <span class="status-badge" [class.inactive]="!branchState()?.active">
+        {{ branchState()?.active ? 'Activa' : 'Inactiva' }}
+      </span>
+    </div>
+    <form class="rename-form" [formGroup]="branchForm" (ngSubmit)="onRenameBranch()" novalidate>
+      <label for="branch-name-{{ branch.id }}">Actualizar nombre</label>
+      <div class="rename-controls">
+        <input
+          id="branch-name-{{ branch.id }}"
+          type="text"
+          formControlName="name"
+          [class.invalid]="branchForm.controls.name.invalid && branchForm.controls.name.touched"
+        />
+        <button type="submit" class="secondary" [disabled]="branchUpdating()">
+          {{ branchUpdating() ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+      <span class="field-error" *ngIf="branchForm.controls.name.invalid && branchForm.controls.name.touched">
+        Ingresa un nombre valido (minimo 3 caracteres).
+      </span>
+    </form>
+    <div class="branch-actions">
+      <button
+        type="button"
+        class="ghost"
+        (click)="onToggleBranchStatus()"
+        [disabled]="branchStatusPending() || branchDeleting()"
+      >
+        {{ branchState()?.active ? (branchStatusPending() ? 'Desactivando...' : 'Desactivar') : (branchStatusPending() ? 'Activando...' : 'Activar') }}
+      </button>
+      <button
+        type="button"
+        class="danger"
+        (click)="onDeleteBranch()"
+        [disabled]="branchDeleting() || branchStatusPending()"
+      >
+        {{ branchDeleting() ? 'Eliminando...' : 'Eliminar sucursal' }}
+      </button>
+    </div>
+  </header>
+
+  <section class="messages">
+    <p class="alert success" *ngIf="success()">{{ success() }}</p>
+    <p class="alert error" *ngIf="error()">{{ error() }}</p>
+  </section>
+
+  <section class="add-product">
+    <h4>Agregar producto</h4>
+    <p class="hint" *ngIf="!branchState()?.active">Activa la sucursal para poder agregar nuevos productos.</p>
+    <form [formGroup]="addProductForm" (ngSubmit)="onAddProduct()" novalidate>
+      <div class="form-grid">
+        <div>
+          <label for="product-name-{{ branch.id }}">Nombre</label>
+          <input
+            id="product-name-{{ branch.id }}"
+            type="text"
+            formControlName="name"
+            placeholder="Ej. Cafe Premium 1kg"
+            [class.invalid]="addProductForm.controls.name.invalid && addProductForm.controls.name.touched"
+          />
+        </div>
+        <div>
+          <label for="product-stock-{{ branch.id }}">Stock inicial</label>
+          <input
+            id="product-stock-{{ branch.id }}"
+            type="number"
+            formControlName="stock"
+            min="0"
+            [class.invalid]="addProductForm.controls.stock.invalid && addProductForm.controls.stock.touched"
+          />
+        </div>
+        <div class="actions">
+          <button type="submit" class="primary" [disabled]="addProductPending() || !branchState()?.active">
+            {{ addProductPending() ? 'Agregando...' : 'Agregar' }}
+          </button>
+        </div>
+      </div>
+      <div class="field-error" *ngIf="addProductForm.invalid && addProductForm.touched">
+        Revisa los datos antes de enviar. El stock debe ser un numero positivo.
+      </div>
+    </form>
+  </section>
+
+  <section class="products">
+    <header>
+      <h4>Inventario actual</h4>
+      <span>{{ branchState()?.products?.length ?? 0 }} productos</span>
+    </header>
+
+    <div class="product-table" *ngIf="branchState()?.products?.length; else emptyProducts">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Stock</th>
+            <th class="fit"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of branchState()?.products ?? []">
+            <td>
+              <input
+                type="text"
+                [ngModel]="productStates()[product.id]?.name"
+                (ngModelChange)="onStateChange(product, 'name', $event)"
+                [class.pending]="productPending()[product.id]"
+              />
+            </td>
+            <td>
+              <div class="stock-control">
+                <input
+                  type="number"
+                  min="0"
+                  [ngModel]="productStates()[product.id]?.stock"
+                  (ngModelChange)="onStateChange(product, 'stock', $event)"
+                  [class.pending]="productPending()[product.id]"
+                />
+              </div>
+            </td>
+            <td class="fit">
+              <div class="product-actions">
+                <button
+                  type="button"
+                  class="ghost"
+                  (click)="onUpdateProductName(product)"
+                  [disabled]="productPending()[product.id]"
+                >
+                  Renombrar
+                </button>
+                <button
+                  type="button"
+                  class="ghost"
+                  (click)="onUpdateProductStock(product)"
+                  [disabled]="productPending()[product.id]"
+                >
+                  Actualizar stock
+                </button>
+                <button
+                  type="button"
+                  class="danger"
+                  (click)="onDeleteProduct(product)"
+                  [disabled]="productPending()[product.id]"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyProducts>
+      <div class="empty">No hay productos registrados en esta sucursal.</div>
+    </ng-template>
+  </section>
+</article>

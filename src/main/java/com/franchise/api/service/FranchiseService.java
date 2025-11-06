@@ -11,6 +11,7 @@ import com.franchise.api.dto.FranchiseResponse;
 import com.franchise.api.dto.ProductResponse;
 import com.franchise.api.dto.TopProductPerBranchResponse;
 import com.franchise.api.dto.UpdateBranchNameRequest;
+import com.franchise.api.dto.UpdateBranchStatusRequest;
 import com.franchise.api.dto.UpdateFranchiseNameRequest;
 import com.franchise.api.dto.UpdateProductNameRequest;
 import com.franchise.api.dto.UpdateProductStockRequest;
@@ -85,9 +86,11 @@ public class FranchiseService {
         if (exists) {
             throw new ConflictException("Branch with name '%s' already exists in franchise".formatted(name));
         }
+        boolean active = request.active() == null || Boolean.TRUE.equals(request.active());
         Branch branch = Branch.builder()
                 .id(UUID.randomUUID().toString())
                 .name(name)
+                .active(active)
                 .build();
         branches.add(branch);
         franchiseRepository.save(franchise);
@@ -112,9 +115,23 @@ public class FranchiseService {
         return FranchiseMapper.toBranchResponse(branch);
     }
 
+    public BranchResponse updateBranchStatus(String franchiseId, String branchId, UpdateBranchStatusRequest request) {
+        Franchise franchise = getFranchise(franchiseId);
+        Branch branch = getBranch(franchise, branchId);
+        boolean requestedStatus = Boolean.TRUE.equals(request.active());
+        if (branch.isActive() != requestedStatus) {
+            branch.setActive(requestedStatus);
+            franchiseRepository.save(franchise);
+        }
+        return FranchiseMapper.toBranchResponse(branch);
+    }
+
     public ProductResponse addProduct(String franchiseId, String branchId, CreateProductRequest request) {
         Franchise franchise = getFranchise(franchiseId);
         Branch branch = getBranch(franchise, branchId);
+        if (!branch.isActive()) {
+            throw new BadRequestException("Cannot add products to an inactive branch");
+        }
         String name = normalizeName(request.name());
         ensureNameIsPresent(name, "Product name is required");
         int stock = ensureNonNegativeStock(request.stock());
@@ -173,9 +190,25 @@ public class FranchiseService {
         return FranchiseMapper.toProductResponse(product);
     }
 
+    public void deleteBranch(String franchiseId, String branchId) {
+        Franchise franchise = getFranchise(franchiseId);
+        List<Branch> branches = ensureBranches(franchise);
+        boolean removed = branches.removeIf(branch -> branchId.equals(branch.getId()));
+        if (!removed) {
+            throw new ResourceNotFoundException("Branch with id '%s' not found in franchise".formatted(branchId));
+        }
+        franchiseRepository.save(franchise);
+    }
+
+    public void deleteFranchise(String franchiseId) {
+        Franchise franchise = getFranchise(franchiseId);
+        franchiseRepository.delete(franchise);
+    }
+
     public List<TopProductPerBranchResponse> getTopProductPerBranch(String franchiseId) {
         Franchise franchise = getFranchise(franchiseId);
         return ensureBranches(franchise).stream()
+                .filter(Branch::isActive)
                 .map(branch -> {
                     Optional<Product> topProduct = ensureProducts(branch).stream()
                             .max(Comparator.comparingInt(Product::getStock));

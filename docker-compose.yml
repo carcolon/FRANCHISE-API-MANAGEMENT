@@ -1,4 +1,4 @@
-services:
+﻿services:
   mongo:
     image: mongo:7.0
     restart: unless-stopped
@@ -15,7 +15,7 @@ services:
     depends_on:
       - mongo
     environment:
-      MONGODB_URI: mongodb://mongo:27017/franchise_db
+      MONGODB_URI: mongodb://root:example@mongo:27017/franchise_db?authSource=admin
     ports:
       - "8080:8080"
     command: ["java", "-jar", "app.jar"]

@@ -1,0 +1,53 @@
+:root {
+  color-scheme: light;
+  --color-primary: #0d6efd;
+  --color-heading: #0c1a2b;
+  --color-text: #1d2733;
+  --color-text-subtle: #5a6a7d;
+  --color-danger: #dc3545;
+  --color-success-dark: #0a8f47;
+  --surface-base: #f5f7fb;
+  --surface-subtle: #eef2fa;
+  --surface-elevated: #ffffff;
+  --border-color: rgba(15, 38, 64, 0.12);
+  --shadow-sm: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 10px 30px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+  background: var(--surface-base);
+  color: var(--color-text);
+  min-height: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 38, 64, 0.2);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 38, 64, 0.35);
+}
