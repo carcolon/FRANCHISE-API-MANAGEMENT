@@ -19,6 +19,7 @@ interface ProductState {
 export class BranchCardComponent implements OnChanges {
   @Input({ required: true }) franchiseId!: string;
   @Input({ required: true }) branch!: Branch;
+  @Input() adminMode = false;
   @Output() branchUpdated = new EventEmitter<Branch>();
   @Output() branchDeleted = new EventEmitter<string>();
 
@@ -61,6 +62,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onRenameBranch(): void {
+    if (!this.adminMode) {
+      return;
+    }
     if (this.branchForm.invalid || !this.branchState()) {
       this.branchForm.markAllAsTouched();
       return;
@@ -82,6 +86,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onToggleBranchStatus(): void {
+    if (!this.adminMode) {
+      return;
+    }
     const current = this.branchState();
     if (!current) {
       return;
@@ -102,6 +109,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onDeleteBranch(): void {
+    if (!this.adminMode) {
+      return;
+    }
     const current = this.branchState();
     if (!current) {
       return;
@@ -125,6 +135,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onAddProduct(): void {
+    if (!this.adminMode) {
+      return;
+    }
     if (this.addProductForm.invalid || !this.branchState()) {
       this.addProductForm.markAllAsTouched();
       return;
@@ -158,6 +171,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onUpdateProductName(product: Product): void {
+    if (!this.adminMode) {
+      return;
+    }
     const state = this.productStates()[product.id];
     if (!state || !state.name?.trim()) {
       this.error.set('El nombre del producto es obligatorio.');
@@ -179,6 +195,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onUpdateProductStock(product: Product): void {
+    if (!this.adminMode) {
+      return;
+    }
     const state = this.productStates()[product.id];
     if (state === undefined || state.stock === null || state.stock < 0 || Number.isNaN(state.stock)) {
       this.error.set('El stock debe ser un numero mayor o igual a 0.');
@@ -200,6 +219,9 @@ export class BranchCardComponent implements OnChanges {
   }
 
   onDeleteProduct(product: Product): void {
+    if (!this.adminMode) {
+      return;
+    }
     if (!confirm(`Eliminar el producto "${product.name}"? Esta accion no se puede deshacer.`)) {
       return;
     }
@@ -280,6 +302,10 @@ export class BranchCardComponent implements OnChanges {
   }
 
   private syncAddProductFormState(active: boolean): void {
+    if (!this.adminMode) {
+      this.addProductForm.disable({ emitEvent: false });
+      return;
+    }
     if (active) {
       this.addProductForm.enable({ emitEvent: false });
     } else {

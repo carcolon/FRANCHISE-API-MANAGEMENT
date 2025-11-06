@@ -13,6 +13,7 @@ import com.franchise.api.dto.TopProductPerBranchResponse;
 import com.franchise.api.dto.UpdateBranchNameRequest;
 import com.franchise.api.dto.UpdateBranchStatusRequest;
 import com.franchise.api.dto.UpdateFranchiseNameRequest;
+import com.franchise.api.dto.UpdateFranchiseStatusRequest;
 import com.franchise.api.dto.UpdateProductNameRequest;
 import com.franchise.api.dto.UpdateProductStockRequest;
 import com.franchise.api.exception.BadRequestException;
@@ -45,6 +46,7 @@ public class FranchiseService {
                 });
         Franchise franchise = Franchise.builder()
                 .name(name)
+                .active(request.active() == null || Boolean.TRUE.equals(request.active()))
                 .build();
         Franchise saved = franchiseRepository.save(franchise);
         return FranchiseMapper.toResponse(saved);
@@ -77,8 +79,22 @@ public class FranchiseService {
                 .toList();
     }
 
+    public FranchiseResponse updateFranchiseStatus(String franchiseId, UpdateFranchiseStatusRequest request) {
+        Franchise franchise = getFranchise(franchiseId);
+        boolean currentActive = isActive(franchise);
+        boolean requested = Boolean.TRUE.equals(request.active());
+        if (currentActive != requested) {
+            franchise.setActive(requested);
+            franchiseRepository.save(franchise);
+        }
+        return FranchiseMapper.toResponse(franchise);
+    }
+
     public BranchResponse addBranch(String franchiseId, CreateBranchRequest request) {
         Franchise franchise = getFranchise(franchiseId);
+        if (!isActive(franchise)) {
+            throw new BadRequestException("Cannot add branches to an inactive franchise");
+        }
         String name = normalizeName(request.name());
         ensureNameIsPresent(name, "Branch name is required");
         List<Branch> branches = ensureBranches(franchise);
@@ -128,6 +144,9 @@ public class FranchiseService {
 
     public ProductResponse addProduct(String franchiseId, String branchId, CreateProductRequest request) {
         Franchise franchise = getFranchise(franchiseId);
+        if (!isActive(franchise)) {
+            throw new BadRequestException("Cannot add products to an inactive franchise");
+        }
         Branch branch = getBranch(franchise, branchId);
         if (!branch.isActive()) {
             throw new BadRequestException("Cannot add products to an inactive branch");
@@ -207,6 +226,9 @@ public class FranchiseService {
 
     public List<TopProductPerBranchResponse> getTopProductPerBranch(String franchiseId) {
         Franchise franchise = getFranchise(franchiseId);
+        if (!isActive(franchise)) {
+            return List.of();
+        }
         return ensureBranches(franchise).stream()
                 .filter(Branch::isActive)
                 .map(branch -> {
@@ -253,6 +275,10 @@ public class FranchiseService {
             branch.setProducts(new ArrayList<>());
         }
         return branch.getProducts();
+    }
+
+    private boolean isActive(Franchise franchise) {
+        return franchise.getActive() == null || Boolean.TRUE.equals(franchise.getActive());
     }
 
     private String normalizeName(String name) {

@@ -12,6 +12,21 @@ API REST para administrar franquicias, sus sucursales y el inventario de product
 - Se ejecuta en cada *push* a las ramas main/master y en todos los *pull requests* dirigidos a ellas.
 - Puedes extenderlo agregando pruebas de UI, linting o despliegues editando ese workflow.
 
+## Autenticacion y roles
+
+- Endpoint de login: `POST /api/v1/auth/login` (body JSON con `username` y `password`). Devuelve JWT, roles y fecha de expiracion.
+- El JWT debe enviarse en la cabecera `Authorization: Bearer <token>` en cada peticion. El frontend ya lo agrega via interceptor.
+- Roles disponibles:
+  - `ADMIN`: crear/eliminar franquicias y sucursales, activar/desactivar sucursales/franquicias, gestionar inventario.
+  - `USER`: acceso de solo lectura a franquicias, sucursales, inventario y metricas.
+- Rutas protegidas:
+  - `GET /api/v1/franchises/**`: `ADMIN` o `USER`.
+  - Resto de operaciones `POST/PATCH/DELETE /api/**`: solo `ADMIN`.
+- Credenciales iniciales (creadas automaticamente):
+  - `admin / Admin123!` (ADMIN + USER)
+  - `analyst / Analyst123!` (USER)
+- Puedes modificar o crear nuevas cuentas en MongoDB (coleccion `users`), las contraseñas deben almacenarse con BCrypt.
+
 ## Arquitectura y tecnologias
 
 - Spring Boot 3.3
@@ -46,6 +61,8 @@ Los artefactos se generan en ranchise-management-ui/dist/franchise-management-u
 
 Si la API corre en otra direccion/puerto, actualiza src/app/core/config/app-config.ts o exporta la variable correspondiente en tu pipeline.
 
+> **Credenciales iniciales**: `admin / Admin123!` (rol ADMIN) y `analyst / Analyst123!` (solo lectura). Tras iniciar sesion se habilitan las funciones segun rol.
+
 ## Requisitos previos
 
 - Java Development Kit (JDK) 17 o superior
@@ -63,6 +80,7 @@ Si la API corre en otra direccion/puerto, actualiza src/app/core/config/app-conf
    java -version
    docker --version   # solo si se utilizara Docker
    `
+4. Definir el secreto JWT (produccion): `setx JWT_SECRET "mi-secreto-ultra"` / `export JWT_SECRET="mi-secreto-ultra"` (por defecto se usa `change-me-in-production`).
 
 ## Ejecucion local con Maven
 

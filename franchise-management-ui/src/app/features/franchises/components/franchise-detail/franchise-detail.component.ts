@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { Branch, Franchise, TopProductPerBranch } from '../../../../core/models/franchise.model';
 import { FranchiseApiService } from '../../../../core/services/franchise-api.service';
+import { AuthService } from '../../../../core/services/auth.service';
 import { BranchCardComponent } from '../branch-card/branch-card.component';
 
 @Component({
@@ -23,7 +24,9 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
   readonly topProductsLoading = signal(false);
   readonly branchCreating = signal(false);
   readonly franchiseSaving = signal(false);
+  readonly franchiseStatusUpdating = signal(false);
   readonly deletingFranchise = signal(false);
+  readonly isAdmin = computed(() => this.authService.currentUser()?.roles.includes('ADMIN') ?? false);
 
   readonly franchiseForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]]
@@ -41,7 +44,8 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
     private readonly route: ActivatedRoute,
     private readonly fb: FormBuilder,
     private readonly api: FranchiseApiService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -68,7 +72,11 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
         this.franchise.set(data);
         this.franchiseForm.patchValue({ name: data.name });
         this.loading.set(false);
-        this.fetchTopProducts();
+        if (data.active) {
+          this.fetchTopProducts();
+        } else {
+          this.topProducts.set([]);
+        }
       },
       error: (err) => {
         this.error.set(err.message ?? 'No fue posible obtener la franquicia.');
@@ -79,6 +87,10 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
 
   onUpdateFranchise(): void {
     if (!this.franchiseId) {
+      return;
+    }
+    if (!this.isAdmin()) {
+      this.error.set('Acción permitida solo para administradores.');
       return;
     }
     if (this.franchiseForm.invalid) {
@@ -104,6 +116,15 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
 
   onCreateBranch(): void {
     if (!this.franchiseId) {
+      return;
+    }
+    if (!this.isAdmin()) {
+      this.error.set('Acción permitida solo para administradores.');
+      return;
+    }
+    const current = this.franchise();
+    if (current && !current.active) {
+      this.error.set('Activa la franquicia para crear nuevas sucursales.');
       return;
     }
     if (this.branchForm.invalid) {
@@ -163,6 +184,10 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
     if (!this.franchiseId) {
       return;
     }
+    if (!this.isAdmin()) {
+      this.error.set('Acción permitida solo para administradores.');
+      return;
+    }
     if (!confirm('Eliminar esta franquicia eliminará todas sus sucursales y productos. ¿Deseas continuar?')) {
       return;
     }
@@ -178,6 +203,37 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.error.set(err.message ?? 'No fue posible eliminar la franquicia.');
         this.deletingFranchise.set(false);
+      }
+    });
+  }
+
+  onToggleFranchiseStatus(): void {
+    const franchise = this.franchise();
+    if (!this.franchiseId || !franchise) {
+      return;
+    }
+    if (!this.isAdmin()) {
+      this.error.set('Acción permitida solo para administradores.');
+      return;
+    }
+    const targetStatus = !franchise.active;
+    this.franchiseStatusUpdating.set(true);
+    this.error.set(null);
+    this.success.set(null);
+    this.api.updateFranchiseStatus(this.franchiseId, targetStatus).subscribe({
+      next: (updated) => {
+        this.franchise.set(updated);
+        this.success.set(updated.active ? 'Franquicia activada.' : 'Franquicia desactivada.');
+        this.franchiseStatusUpdating.set(false);
+        if (!updated.active) {
+          this.topProducts.set([]);
+        } else {
+          this.fetchTopProducts();
+        }
+      },
+      error: (err) => {
+        this.error.set(err.message ?? 'No fue posible actualizar el estado de la franquicia.');
+        this.franchiseStatusUpdating.set(false);
       }
     });
   }

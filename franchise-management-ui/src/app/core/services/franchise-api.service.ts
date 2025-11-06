@@ -53,6 +53,12 @@ export class FranchiseApiService {
       .pipe(catchError((error) => this.handleError(error)));
   }
 
+  updateFranchiseStatus(id: string, active: boolean): Observable<Franchise> {
+    return this.http
+      .patch<Franchise>(`${this.baseUrl}/${id}/status`, { active })
+      .pipe(catchError((error) => this.handleError(error)));
+  }
+
   deleteFranchise(id: string): Observable<void> {
     return this.http
       .delete<void>(`${this.baseUrl}/${id}`)

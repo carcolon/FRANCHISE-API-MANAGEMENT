@@ -89,6 +89,46 @@ nav a:hover {
   box-shadow: 0 0 0 3px rgba(15, 219, 107, 0.25);
 }
 
+.user-chip .status.admin {
+  background: #facc15;
+  box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.25);
+}
+
+.user-chip .user-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.user-chip .user-meta small {
+  font-size: 0.75rem;
+  opacity: 0.75;
+}
+
+.user-chip button.ghost {
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.user-chip button.ghost:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.login-btn {
+  display: inline-block;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
 .content {
   flex: 1;
   padding: 2rem;

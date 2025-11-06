@@ -14,6 +14,7 @@ export interface Branch {
 export interface Franchise {
   id: string;
   name: string;
+  active: boolean;
   branches: Branch[];
 }
 

@@ -77,6 +77,15 @@
   color: var(--color-text-subtle);
 }
 
+.creation-card.viewer {
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+.creation-card.viewer header h2 {
+  color: var(--color-heading);
+}
+
 form {
   margin-top: 1.5rem;
   display: flex;
@@ -224,6 +233,31 @@ tbody td {
 
 .actions {
   text-align: right;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(15, 219, 107, 0.12);
+  color: var(--color-success-dark);
+}
+
+.status-chip::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-chip.inactive {
+  background: rgba(220, 53, 69, 0.12);
+  color: var(--color-danger);
 }
 
 .empty-state,

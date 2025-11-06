@@ -14,6 +14,9 @@
       <div>
         <h1>{{ franchise()?.name }}</h1>
         <p>Gestiona sucursales, inventario y metricas clave desde un unico lugar.</p>
+        <span class="status-chip" [class.inactive]="!franchise()?.active">
+          {{ franchise()?.active ? 'Franquicia activa' : 'Franquicia inactiva' }}
+        </span>
       </div>
       <div class="header-actions">
         <form [formGroup]="franchiseForm" (ngSubmit)="onUpdateFranchise()" novalidate>
@@ -33,6 +36,16 @@
             El nombre debe tener al menos 3 caracteres.
           </span>
         </form>
+        <button
+          type="button"
+          class="ghost"
+          (click)="onToggleFranchiseStatus()"
+          [disabled]="franchiseStatusUpdating()"
+        >
+          {{ franchiseStatusUpdating()
+            ? 'Actualizando...'
+            : franchise()?.active ? 'Desactivar franquicia' : 'Activar franquicia' }}
+        </button>
         <button type="button" class="danger outline" (click)="onDeleteFranchise()" [disabled]="deletingFranchise()">
           {{ deletingFranchise() ? 'Eliminando...' : 'Eliminar franquicia' }}
         </button>
@@ -68,7 +81,7 @@
       </ng-template>
     </section>
 
-    <section class="new-branch">
+    <section class="new-branch" *ngIf="isAdmin(); else readOnlyBranches">
       <h2>Crear nueva sucursal</h2>
       <form [formGroup]="branchForm" (ngSubmit)="onCreateBranch()" novalidate>
         <div class="form-row">
@@ -101,6 +114,7 @@
           *ngFor="let branch of franchise()?.branches ?? []"
           [franchiseId]="franchise()?.id ?? ''"
           [branch]="branch"
+          [adminMode]="isAdmin()"
           (branchUpdated)="onBranchUpdated($event)"
           (branchDeleted)="onBranchDeleted($event)"
         ></app-branch-card>
@@ -111,6 +125,13 @@
         </div>
       </ng-template>
     </section>
+
+    <ng-template #readOnlyBranches>
+      <section class="new-branch readonly">
+        <h2>Visualización</h2>
+        <p>Esta cuenta tiene permisos de solo lectura sobre las sucursales.</p>
+      </section>
+    </ng-template>
   </ng-container>
 </ng-template>
 

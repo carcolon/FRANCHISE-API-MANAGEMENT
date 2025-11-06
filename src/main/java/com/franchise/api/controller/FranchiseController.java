@@ -10,6 +10,7 @@ import com.franchise.api.dto.TopProductPerBranchResponse;
 import com.franchise.api.dto.UpdateBranchNameRequest;
 import com.franchise.api.dto.UpdateBranchStatusRequest;
 import com.franchise.api.dto.UpdateFranchiseNameRequest;
+import com.franchise.api.dto.UpdateFranchiseStatusRequest;
 import com.franchise.api.dto.UpdateProductNameRequest;
 import com.franchise.api.dto.UpdateProductStockRequest;
 import com.franchise.api.service.FranchiseService;
@@ -60,6 +61,12 @@ public class FranchiseController {
     public ResponseEntity<FranchiseResponse> updateFranchiseName(@PathVariable String franchiseId,
                                                                  @Valid @RequestBody UpdateFranchiseNameRequest request) {
         return ResponseEntity.ok(franchiseService.updateFranchiseName(franchiseId, request));
+    }
+
+    @PatchMapping("/{franchiseId}/status")
+    public ResponseEntity<FranchiseResponse> updateFranchiseStatus(@PathVariable String franchiseId,
+                                                                   @Valid @RequestBody UpdateFranchiseStatusRequest request) {
+        return ResponseEntity.ok(franchiseService.updateFranchiseStatus(franchiseId, request));
     }
 
     @DeleteMapping("/{franchiseId}")

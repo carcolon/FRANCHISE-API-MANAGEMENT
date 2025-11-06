@@ -8,7 +8,13 @@
         {{ branchState()?.active ? 'Activa' : 'Inactiva' }}
       </span>
     </div>
-    <form class="rename-form" [formGroup]="branchForm" (ngSubmit)="onRenameBranch()" novalidate>
+    <form
+      *ngIf="adminMode; else readOnlyNotice"
+      class="rename-form"
+      [formGroup]="branchForm"
+      (ngSubmit)="onRenameBranch()"
+      novalidate
+    >
       <label for="branch-name-{{ branch.id }}">Actualizar nombre</label>
       <div class="rename-controls">
         <input
@@ -25,7 +31,10 @@
         Ingresa un nombre valido (minimo 3 caracteres).
       </span>
     </form>
-    <div class="branch-actions">
+    <ng-template #readOnlyNotice>
+      <p class="hint">Acceso de solo lectura.</p>
+    </ng-template>
+    <div class="branch-actions" *ngIf="adminMode">
       <button
         type="button"
         class="ghost"
@@ -50,7 +59,7 @@
     <p class="alert error" *ngIf="error()">{{ error() }}</p>
   </section>
 
-  <section class="add-product">
+  <section class="add-product" *ngIf="adminMode">
     <h4>Agregar producto</h4>
     <p class="hint" *ngIf="!branchState()?.active">Activa la sucursal para poder agregar nuevos productos.</p>
     <form [formGroup]="addProductForm" (ngSubmit)="onAddProduct()" novalidate>
@@ -109,7 +118,9 @@
                 type="text"
                 [ngModel]="productStates()[product.id]?.name"
                 (ngModelChange)="onStateChange(product, 'name', $event)"
+                [readonly]="!adminMode"
                 [class.pending]="productPending()[product.id]"
+                [class.readonly]="!adminMode"
               />
             </td>
             <td>
@@ -119,13 +130,16 @@
                   min="0"
                   [ngModel]="productStates()[product.id]?.stock"
                   (ngModelChange)="onStateChange(product, 'stock', $event)"
+                  [readonly]="!adminMode"
                   [class.pending]="productPending()[product.id]"
+                  [class.readonly]="!adminMode"
                 />
               </div>
             </td>
             <td class="fit">
               <div class="product-actions">
                 <button
+                  *ngIf="adminMode"
                   type="button"
                   class="ghost"
                   (click)="onUpdateProductName(product)"
@@ -134,6 +148,7 @@
                   Renombrar
                 </button>
                 <button
+                  *ngIf="adminMode"
                   type="button"
                   class="ghost"
                   (click)="onUpdateProductStock(product)"
@@ -142,6 +157,7 @@
                   Actualizar stock
                 </button>
                 <button
+                  *ngIf="adminMode"
                   type="button"
                   class="danger"
                   (click)="onDeleteProduct(product)"

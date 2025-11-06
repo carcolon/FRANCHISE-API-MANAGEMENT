@@ -1,0 +1,40 @@
+<div class="login-wrapper">
+  <section class="login-card">
+    <div class="brand">
+      <div class="logo">FM</div>
+      <h1>Franchise API Management</h1>
+      <p>Accede al panel administrativo.</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" novalidate>
+      <label for="username">Usuario</label>
+      <input
+        id="username"
+        type="text"
+        formControlName="username"
+        placeholder="admin"
+        [class.invalid]="loginForm.controls.username.invalid && loginForm.controls.username.touched"
+      />
+
+      <label for="password">Contraseña</label>
+      <input
+        id="password"
+        type="password"
+        formControlName="password"
+        placeholder="••••••••"
+        [class.invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"
+      />
+
+      <button type="submit" class="primary" [disabled]="isLoading()">
+        {{ isLoading() ? 'Ingresando...' : 'Iniciar sesión' }}
+      </button>
+    </form>
+
+    <p class="alert error" *ngIf="error()">{{ error() }}</p>
+    <p class="helper">
+      <strong>Credenciales por defecto:</strong><br />
+      admin / Admin123!<br />
+      analyst / Analyst123!
+    </p>
+  </section>
+</div>

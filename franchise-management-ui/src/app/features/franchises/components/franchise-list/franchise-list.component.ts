@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Franchise } from '../../../../core/models/franchise.model';
 import { FranchiseApiService } from '../../../../core/services/franchise-api.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-franchise-list',
@@ -22,6 +23,7 @@ export class FranchiseListComponent implements OnInit {
   readonly creating = signal(false);
   readonly error = signal<string | null>(null);
   readonly success = signal<string | null>(null);
+  readonly isAdmin = computed(() => this.authService.currentUser()?.roles.includes('ADMIN') ?? false);
 
   readonly totalBranches = computed(() =>
     this.franchises()
@@ -39,7 +41,8 @@ export class FranchiseListComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     private readonly api: FranchiseApiService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +69,10 @@ export class FranchiseListComponent implements OnInit {
       this.createForm.markAllAsTouched();
       return;
     }
+    if (!this.isAdmin()) {
+      this.error.set('No tienes permisos para crear franquicias.');
+      return;
+    }
     const { name } = this.createForm.getRawValue();
     this.creating.set(true);
     this.error.set(null);
@@ -85,6 +92,10 @@ export class FranchiseListComponent implements OnInit {
   }
 
   onDeleteFranchise(franchise: Franchise): void {
+    if (!this.isAdmin()) {
+      this.error.set('No tienes permisos para eliminar franquicias.');
+      return;
+    }
     if (!confirm(`Eliminar la franquicia "${franchise.name}" y todo su inventario asociado? Esta acción no se puede deshacer.`)) {
       return;
     }

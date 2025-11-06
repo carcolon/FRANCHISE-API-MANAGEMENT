@@ -24,6 +24,7 @@ public final class FranchiseMapper {
         return new FranchiseResponse(
                 franchise.getId(),
                 franchise.getName(),
+                franchise.getActive() == null || Boolean.TRUE.equals(franchise.getActive()),
                 toBranchResponses(franchise.getBranches())
         );
     }

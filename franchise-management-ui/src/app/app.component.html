@@ -7,7 +7,7 @@
         <span>Enterprise Control Center</span>
       </div>
     </div>
-    <nav>
+    <nav *ngIf="isAuthenticated()">
       <a
         *ngFor="let item of navigation"
         [routerLink]="item.path"
@@ -17,10 +17,19 @@
         {{ item.label }}
       </a>
     </nav>
-    <div class="user-chip">
-      <span class="status"></span>
-      SaaS Operativo
+    <div class="user-chip" *ngIf="isAuthenticated(); else loginLink">
+      <div>
+        <span class="status" [class.admin]="isAdmin()"></span>
+      </div>
+      <div class="user-meta">
+        <strong>{{ user()?.username }}</strong>
+        <small>{{ isAdmin() ? 'Administrador' : 'Usuario' }}</small>
+      </div>
+      <button type="button" class="ghost" (click)="logout()">Salir</button>
     </div>
+    <ng-template #loginLink>
+      <a routerLink="/login" class="login-btn">Iniciar sesión</a>
+    </ng-template>
   </header>
 
   <main class="content">

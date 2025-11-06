@@ -55,6 +55,11 @@ header p {
   gap: 0.4rem;
 }
 
+.hint {
+  color: var(--color-text-subtle);
+  font-size: 0.85rem;
+}
+
 .rename-controls {
   display: flex;
   gap: 0.6rem;
@@ -68,6 +73,11 @@ input[type='number'] {
   background: var(--surface-base);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
+}
+
+input.readonly {
+  background: var(--surface-subtle);
+  cursor: default;
 }
 
 input[type='text']:focus,

@@ -20,7 +20,7 @@
 </section>
 
 <section class="layout">
-  <article class="creation-card">
+  <article class="creation-card" *ngIf="isAdmin(); else viewerNotice">
     <header>
       <h2>Nueva franquicia</h2>
       <p>Ingresa el nombre oficial para registrarla en el ecosistema.</p>
@@ -62,6 +62,7 @@
         <thead>
           <tr>
             <th>Franquicia</th>
+            <th>Estado</th>
             <th>Sucursales</th>
             <th>Productos</th>
             <th></th>
@@ -75,13 +76,23 @@
                 <span>ID: {{ franchise.id }}</span>
               </div>
             </td>
+            <td>
+              <span class="status-chip" [class.inactive]="!franchise.active">
+                {{ franchise.active ? 'Activa' : 'Inactiva' }}
+              </span>
+            </td>
             <td>{{ franchise.branches?.length ?? 0 }}</td>
             <td>{{ getProductCount(franchise) }}</td>
             <td class="actions">
               <button type="button" class="primary subtle" (click)="onNavigate(franchise)">
-                Gestionar
+              Gestionar
               </button>
-              <button type="button" class="danger subtle" (click)="onDeleteFranchise(franchise)">
+              <button
+                *ngIf="isAdmin()"
+                type="button"
+                class="danger subtle"
+                (click)="onDeleteFranchise(franchise)"
+              >
                 Eliminar
               </button>
             </td>
@@ -103,3 +114,12 @@
     </ng-template>
   </article>
 </section>
+
+<ng-template #viewerNotice>
+  <article class="creation-card viewer">
+    <header>
+      <h2>Acceso de solo lectura</h2>
+      <p>Has iniciado sesión como usuario. Solicita permisos de administrador para gestionar franquicias.</p>
+    </header>
+  </article>
+</ng-template>

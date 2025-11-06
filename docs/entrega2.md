@@ -1,4 +1,4 @@
-﻿# Franchise API Management  Entrega 2
+# Franchise API Management  Entrega 2
 
 ## 1. Informacion general
 
@@ -29,7 +29,7 @@
 ### 2.2 Instalacion local (Java + MongoDB)
 
 1. Instalar JDK 17 y Maven 3.9 (verificar con `mvn -v`).
-2. Levantar MongoDB local o remoto (Docker Compose usa `mongodb://root:example@mongo:27017/franchise_db?authSource=admin`; si trabajas sin contenedores, conecta desde MongoDB Compass a `mongodb://localhost:27017` o a tu clúster Atlas).
+2. Levantar MongoDB local o remoto (Docker Compose usa `mongodb://root:example@mongo:27017/franchise_db?authSource=admin`; si trabajas sin contenedores, conecta desde MongoDB Compass a `mongodb://localhost:27017` o a tu clster Atlas).
 3. Ejecutar la API:
    ```bash
    mvn spring-boot:run
@@ -43,7 +43,7 @@
 5. Validar funcionamiento en `http://localhost:4200` y consumos a `http://localhost:8080/api/v1`.
 6. Para gestionar sucursales, recuerda:
    - `DELETE /api/v1/franchises/{id}` borra la franquicia completa (sucursales + productos).
-   - `PATCH /api/v1/franchises/{id}/branches/{branchId}/status` activa/desactiva una sucursal. Mientras esté inactiva no admite nuevas altas de productos.
+   - `PATCH /api/v1/franchises/{id}/branches/{branchId}/status` activa/desactiva una sucursal. Mientras est inactiva no admite nuevas altas de productos.
    - `DELETE /api/v1/franchises/{id}/branches/{branchId}` remueve la sucursal del documento principal.
 
 ### 2.3 Instalacion con Docker Compose
@@ -121,7 +121,7 @@ franquicias))
 | CU-03 | El administrador agrega/edita/elimina productos por sucursal. | La sucursal debe existir. | Inventario actualizado y reflejado en la UI. |
 | CU-04 | El administrador consulta el producto con mayor stock por sucursal. | Deben existir productos registrados. | La API devuelve lista de productos top por sucursal. |
 | CU-05 | El usuario consulta informacion en modo lectura. | Usuario autenticado (rol `user`). | Visualiza franquicias, sucursales y top productos. |
-| CU-06 | El administrador activa o desactiva sucursales segun disponibilidad operativa. | La sucursal debe existir. | El campo `active` se actualiza y evita nuevas altas de productos mientras esté inactiva. |
+| CU-06 | El administrador activa o desactiva sucursales segun disponibilidad operativa. | La sucursal debe existir. | El campo `active` se actualiza y evita nuevas altas de productos mientras est inactiva. |
 | CU-07 | El administrador elimina sucursales o franquicias completas. | Debe existir la entidad objetivo. | Se borran documentos y subdocumentos asociados en MongoDB. |
 
 ### 3.3 Diagrama de secuencia (Actualizacion de stock)
@@ -145,7 +145,7 @@ sequenceDiagram
     API-->>UI: 200 OK + JSON actualizado
 ```
 
-> Las sucursales marcadas como inactivas quedan excluidas de cálculos de métricas (p. ej. top productos) y no aceptan nuevas altas hasta reactivarse.
+> Las sucursales marcadas como inactivas quedan excluidas de clculos de mtricas (p. ej. top productos) y no aceptan nuevas altas hasta reactivarse.
 
 ### 3.4 Diagrama de clases (nucleo backend)
 
@@ -364,7 +364,7 @@ flowchart TB
 
 | Patron / Practica | Implementacion | Referencia |
 | --- | --- | --- |
-| Arquitectura en capas | Separacion Controller  Service  Repository. | `src/main/java/com/franchise/api/controller/FranchiseController.java` |
+| Arquitectura en capas | Separacion Controller -> Service -> Repository. | `src/main/java/com/franchise/api/controller/FranchiseController.java` |
 | Patron Repositorio | Interfaz `FranchiseRepository` delega persistencia en MongoDB. | `src/main/java/com/franchise/api/repository/FranchiseRepository.java` |
 | DTO + Mapper | Conversion entre entidades y respuestas REST para aislar el dominio. | `src/main/java/com/franchise/api/mapper/FranchiseMapper.java` |
 | Validacion y manejo centralizado de errores | `@RestControllerAdvice` captura excepciones y produce `ApiError`. | `src/main/java/com/franchise/api/exception/GlobalExceptionHandler.java` |
@@ -372,14 +372,36 @@ flowchart TB
 | Configuracion transversal | CORS y OpenAPI definidos en beans reutilizables. | `src/main/java/com/franchise/api/config/CorsConfig.java` |
 | Testing unitario del dominio | Validacion de reglas en `FranchiseServiceTest`. | `src/test/java/com/franchise/api/service/FranchiseServiceTest.java` |
 | Gobernanza de sucursales | `updateBranchStatus`, `deleteBranch` y `deleteFranchise` encapsulan reglas para activar/desactivar y depurar datos. | `src/main/java/com/franchise/api/service/FranchiseService.java` |
+| Seguridad con JWT | Spring Security + filtros JWT para proteger rutas segun rol. | `src/main/java/com/franchise/api/security` |
 
 > Documentar cualquier patron adicional (p. ej. guards y servicios en Angular) con enlaces a los archivos pertinentes del frontend.
 
-## 8. Proximos pasos sugeridos
+## 8. Seguridad y roles
+
+- Login REST: `POST /api/v1/auth/login` retorna token JWT, roles y expiracin (`AuthController`).
+- Roles:
+  - `ADMIN`: CRUD completo de franquicias, sucursales y productos; activacin/desactivacin global.
+  - `USER`: acceso de solo lectura a catlogo y mtricas.
+- Proteccin granular (`SecurityConfig`):
+  - `GET /api/v1/franchises/**` -> `ADMIN` o `USER`.
+  - Mutaciones (`POST`, `PATCH`, `DELETE`) bajo `/api/**` -> solo `ADMIN`.
+- Frontend:
+  - Interceptor agrega `Authorization: Bearer` automticamente (`auth.interceptor.ts`).
+  - Guards redirigen a `/login` si la sesin expira (`auth.guard.ts`).
+  - La UI oculta acciones administrativas a usuarios de solo lectura.
+- Credenciales iniciales (semilla automtica):
+  - `admin / Admin123!` (roles `ADMIN`, `USER`)
+  - `analyst / Analyst123!` (rol `USER`)
+- Variables clave:
+  - `JWT_SECRET` define el secreto de firma para los tokens (por defecto `change-me-in-production`).
+  - `JWT_EXPIRATION_MS` controla la vigencia del token (1h por defecto).
+
+## 9. Proximos pasos sugeridos
 
 1. Completar los espacios pendientes (links reales, metricas, capturas) antes de la exportacion.
 2. Generar el PDF con `pandoc docs/entrega2.md -o docs/entrega2.pdf` o la herramienta preferida.
 3. Subir evidencias (capturas, videos, archivos Balsamiq) al repositorio o a un drive compartido.
 4. Validar coherencia de version entre backend y frontend y actualizar la tabla inicial.
 5. Compartir el enlace al repositorio, Figma y Maze en la plataforma de entrega oficial.
+
 
