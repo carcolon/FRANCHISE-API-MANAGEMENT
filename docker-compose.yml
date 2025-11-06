@@ -17,6 +17,7 @@
     environment:
       MONGODB_URI: mongodb://root:example@mongo:27017/franchise_db?authSource=admin
       JWT_SECRET: Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tMjAyNCEh
+
     ports:
       - "8080:8080"
     command: ["java", "-jar", "app.jar"]

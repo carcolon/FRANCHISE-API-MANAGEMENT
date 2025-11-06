@@ -1,0 +1,189 @@
+<section class="page-header">
+  <div>
+    <h1>Administración de usuarios</h1>
+    <p>Crea cuentas nuevas, asigna roles y controla el acceso a la plataforma.</p>
+  </div>
+  <button type="button" class="ghost" (click)="loadUsers()" [disabled]="loading()">
+    {{ loading() ? 'Actualizando...' : 'Actualizar listado' }}
+  </button>
+</section>
+
+<section class="layout">
+  <article class="form-card">
+    <header>
+      <h2>Registrar nuevo usuario</h2>
+      <p>Completa los datos básicos. El usuario recibirá el token de recuperación en su correo.</p>
+    </header>
+
+    <form [formGroup]="createForm" (ngSubmit)="onCreateUser()" novalidate>
+      <div class="field-group">
+        <label for="username">Usuario</label>
+        <input
+          id="username"
+          type="text"
+          formControlName="username"
+          placeholder="Ej. supervisor01"
+          [class.invalid]="createForm.controls.username.invalid && createForm.controls.username.touched"
+        />
+        <div class="field-error" *ngIf="createForm.controls.username.invalid && createForm.controls.username.touched">
+          <span *ngIf="createForm.controls.username.errors?.['required']">El usuario es obligatorio.</span>
+          <span *ngIf="createForm.controls.username.errors?.['minlength']">Debe tener al menos 3 caracteres.</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="fullName">Nombre completo</label>
+        <input
+          id="fullName"
+          type="text"
+          formControlName="fullName"
+          placeholder="Nombre y apellido"
+          [class.invalid]="createForm.controls.fullName.invalid && createForm.controls.fullName.touched"
+        />
+        <div class="field-error" *ngIf="createForm.controls.fullName.invalid && createForm.controls.fullName.touched">
+          <span>El nombre completo es obligatorio.</span>
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label for="email">Correo electrónico</label>
+        <input
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="usuario@empresa.com"
+          [class.invalid]="createForm.controls.email.invalid && createForm.controls.email.touched"
+        />
+        <div class="field-error" *ngIf="createForm.controls.email.invalid && createForm.controls.email.touched">
+          <span *ngIf="createForm.controls.email.errors?.['required']">El correo es obligatorio.</span>
+          <span *ngIf="createForm.controls.email.errors?.['email']">Debe tener un formato válido.</span>
+        </div>
+      </div>
+
+      <div class="field-grid">
+        <div class="field-group">
+          <label for="password">Contraseña temporal</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            placeholder="********"
+            [class.invalid]="createForm.controls.password.invalid && createForm.controls.password.touched"
+          />
+          <div class="field-error" *ngIf="createForm.controls.password.invalid && createForm.controls.password.touched">
+            <span>Debe tener al menos 8 caracteres.</span>
+          </div>
+        </div>
+        <div class="field-group">
+          <label for="confirmPassword">Confirmar contraseña</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            placeholder="********"
+            [class.invalid]="createForm.controls.confirmPassword.invalid && createForm.controls.confirmPassword.touched"
+          />
+          <div
+            class="field-error"
+            *ngIf="createForm.controls.confirmPassword.invalid && createForm.controls.confirmPassword.touched"
+          >
+            <span>Confirma la contraseña.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roles-group">
+        <label>Roles asignados</label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="roleUser" />
+          Usuario (lectura)
+        </label>
+        <label class="checkbox">
+          <input type="checkbox" formControlName="roleAdmin" />
+          Administrador (gestión total)
+        </label>
+      </div>
+
+      <button type="submit" class="primary" [disabled]="creating()">
+        {{ creating() ? 'Creando usuario...' : 'Registrar usuario' }}
+      </button>
+    </form>
+
+    <p class="alert success" *ngIf="success()">{{ success() }}</p>
+    <p class="alert error" *ngIf="error()">{{ error() }}</p>
+  </article>
+
+  <article class="list-card">
+    <header>
+      <h2>Usuarios registrados</h2>
+      <p>Revisa el estado actual y roles asignados en la plataforma.</p>
+    </header>
+
+    <div class="table-wrapper" *ngIf="users().length > 0; else emptyState">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+            <th>Roles</th>
+            <th>Estado</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let user of users()">
+            <td>
+              <strong>{{ user.username }}</strong>
+              <span class="muted">ID: {{ user.id }}</span>
+            </td>
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.email }}</td>
+            <td>
+              <span class="role-chip" *ngFor="let role of user.roles">{{ role }}</span>
+            </td>
+            <td>
+              <span class="status-chip" [class.inactive]="!user.active">
+                {{ user.active ? 'Activo' : 'Inactivo' }}
+              </span>
+            </td>
+            <td class="actions">
+              <ng-container *ngIf="!isCurrentUser(user); else selfNote">
+                <button
+                  type="button"
+                  class="ghost"
+                  (click)="toggleStatus(user)"
+                  [disabled]="isToggling(user.id)"
+                >
+                  {{ isToggling(user.id) ? 'Actualizando...' : user.active ? 'Desactivar' : 'Activar' }}
+                </button>
+                <button
+                  type="button"
+                  class="danger"
+                  (click)="deleteUser(user)"
+                  [disabled]="isDeleting(user.id)"
+                >
+                  {{ isDeleting(user.id) ? 'Eliminando...' : 'Eliminar' }}
+                </button>
+              </ng-container>
+              <ng-template #selfNote>
+                <span class="muted">Sesion activa</span>
+              </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #emptyState>
+      <div class="empty-state" *ngIf="!loading(); else loadingState">
+        <p>No hay usuarios registrados en este momento.</p>
+      </div>
+    </ng-template>
+    <ng-template #loadingState>
+      <div class="loading-state">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>Cargando usuarios...</p>
+      </div>
+    </ng-template>
+  </article>
+</section>

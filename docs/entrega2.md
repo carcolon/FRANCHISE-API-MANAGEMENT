@@ -26,6 +26,22 @@
 | Frontend Angular Dev Server | http://localhost:4200 |
 | Build compilado del frontend | `franchise-management-ui/dist/franchise-management-ui/` |
 
+### 2.2 Funcionalidades clave
+
+- Panel administrativo para:
+  - Registrar, editar, activar/inactivar y eliminar franquicias, sucursales y productos.
+  - Consultar el producto con mayor stock en cada sucursal.
+  - Gestionar cuentas de usuario: creación con nombre completo, correo y contraseña, asignación de roles `ADMIN`/`USER`, activación/desactivación y eliminación de cuentas.
+  - Fuerza a los usuarios nuevos a cambiar la contraseña temporal en su primer inicio de sesión mediante un modal de cambio obligatorio.
+  - Eliminar cuentas existentes con confirmación previa (disponible solo para administradores).
+- Aplicación web (SPA) con autenticación JWT:
+  - Usuarios de solo lectura visualizan franquicias, sucursales y productos sin acciones críticas.
+  - Administradores ven el menú “Usuarios”, con formulario para crear nuevos admins o usuarios estándar y tabla con controles de estado.
+  - Diseño responsive basado en CSS Grid/Flexbox: los módulos (topbar, listados, formularios y modales) se reacomodan automáticamente en tablets y móviles.
+- Recuperación de credenciales mediante token temporal:
+  - `POST /api/v1/auth/forgot-password` devuelve el token (15 min) y la UI muestra un modal con la clave.
+  - El formulario de restablecimiento permite validar previamente el token (`POST /api/v1/auth/validate-reset-token`) antes de definir la nueva contraseña (`POST /api/v1/auth/reset-password`).
+
 ### 2.2 Instalacion local (Java + MongoDB)
 
 1. Instalar JDK 17 y Maven 3.9 (verificar con `mvn -v`).
@@ -45,7 +61,6 @@
    - `DELETE /api/v1/franchises/{id}` borra la franquicia completa (sucursales + productos).
    - `PATCH /api/v1/franchises/{id}/branches/{branchId}/status` activa/desactiva una sucursal. Mientras est inactiva no admite nuevas altas de productos.
    - `DELETE /api/v1/franchises/{id}/branches/{branchId}` remueve la sucursal del documento principal.
-
 ### 2.3 Instalacion con Docker Compose
 
 1. Asegurarse de tener Docker Desktop 4.x en ejecucion.
@@ -84,6 +99,8 @@
 | CU-05 | Usuario autenticado | Consultar franquicias y sucursales |
 | CU-06 | Administrador | Activar o desactivar sucursales |
 | CU-07 | Administrador | Eliminar sucursales y franquicias |
+| CU-08 | Administrador | Registrar usuarios del sistema y definir roles |
+| CU-09 | Usuario autenticado | Recuperar acceso mediante token temporal mostrado en la plataforma |
 
 ```mermaid
 flowchart LR
@@ -104,12 +121,30 @@ producto top))
     uc5((CU-05
 Consultar
 franquicias))
+    uc6((CU-06
+Activar/
+desactivar
+sucursales))
+    uc7((CU-07
+Eliminar
+franquicias))
+    uc8((CU-08
+Registrar
+usuarios))
+    uc9((CU-09
+Recuperar
+acceso))
     actorAdmin --> uc1
     actorAdmin --> uc2
     actorAdmin --> uc3
     actorAdmin --> uc4
     actorUser --> uc5
     actorAdmin --> uc5
+    actorAdmin --> uc6
+    actorAdmin --> uc7
+    actorAdmin --> uc8
+    actorUser --> uc9
+    actorAdmin --> uc9
 ```
 
 ### 3.2 Casos de uso documentados
@@ -123,6 +158,8 @@ franquicias))
 | CU-05 | El usuario consulta informacion en modo lectura. | Usuario autenticado (rol `user`). | Visualiza franquicias, sucursales y top productos. |
 | CU-06 | El administrador activa o desactiva sucursales segun disponibilidad operativa. | La sucursal debe existir. | El campo `active` se actualiza y evita nuevas altas de productos mientras est inactiva. |
 | CU-07 | El administrador elimina sucursales o franquicias completas. | Debe existir la entidad objetivo. | Se borran documentos y subdocumentos asociados en MongoDB. |
+| CU-08 | El administrador registra un nuevo usuario asignando roles y correo institucional. | Actor autenticado con rol administrador. | El usuario queda persistido en `users` con contrasena encriptada y roles definidos. |
+| CU-09 | Un usuario solicita restablecer su contrasena y completa el flujo con el token temporal devuelto por la API/UI. | Usuario existente en el sistema. | Se genera token con vigencia de 15 minutos y la contrasena queda actualizada. |
 
 ### 3.3 Diagrama de secuencia (Actualizacion de stock)
 
@@ -294,6 +331,32 @@ flowchart TB
 
 > Para analisis relacional, convertir las estructuras embebidas en colecciones virtuales: `branch` (subdocumento) y `product` (subdocumento) asociados por identificadores.
 
+### 4.3 Coleccion `users`
+
+La autenticacion se apoya en una coleccion separada `users` que almacena credenciales y metadatos de seguridad.
+
+- `username` (string, unico, indexado).
+- `password` (hash BCrypt).
+- `fullName` (string).
+- `email` (string, obligatorio para notificaciones y restablecimiento).
+- `roles` (array de enums, valores `ADMIN` / `USER`).
+- `active` (boolean).
+- `passwordResetToken` + `passwordResetExpiration` (token temporal de 15 minutos).
+
+```json
+{
+  "_id": "679c9409c49e3c1f87c",
+  "username": "admin",
+  "fullName": "Administrador Global",
+  "email": "cfca5@hotmail.com",
+  "password": "$2a$10$...",
+  "roles": ["ADMIN", "USER"],
+  "active": true,
+  "passwordResetToken": null,
+  "passwordResetExpiration": null
+}
+```
+
 ## 5. Prototipos de interfaz
 
 ### 5.1 Baja fidelidad (Balsamiq o Moqups)
@@ -303,6 +366,7 @@ flowchart TB
 | Landing publica | Listado de franquicias, CTA de login por rol. | `docs/prototipos/low-fi/landing.bmpr` |
 | Login (selector de rol) | Formulario de acceso para admin/user. | `docs/prototipos/low-fi/login.bmpr` |
 | Panel admin | CRUD de franquicias, sucursales, inventario. | `docs/prototipos/low-fi/panel-admin.bmpr` |
+| Gestion de usuarios | Alta de cuentas, asignacion de roles y activacion/desactivacion. | `docs/prototipos/low-fi/user-management.bmpr` |
 
 ### 5.2 Alta fidelidad (Figma)
 
@@ -311,6 +375,7 @@ flowchart TB
 | Landing publica | <https://www.figma.com/file/...> | Incluye estados de cards y CTA. |
 | Dashboard admin | <https://www.figma.com/file/...> | Navegacion lateral y tablas editables. |
 | Explorer usuario | <https://www.figma.com/file/...> | Vista solo lectura con filtros. |
+| Administracion de usuarios | <https://www.figma.com/file/...> | Formularios con validacion y tabla de cuentas. |
 
 ### 5.3 Capturas clave (para PDF)
 
@@ -338,6 +403,8 @@ flowchart TB
 | T3 | Registrar un producto y actualizar su stock. | | |
 | T4 | Consultar producto con mayor stock por sucursal. | | |
 | T5 | Navegar en modo lectura como usuario estandar. | | |
+| T6 | Crear un usuario con rol especifico desde el panel de administracion. | | |
+| T7 | Solicitar restablecimiento de contrasena, copiar el token mostrado y completar el flujo. | | |
 
 ### 6.3 Metricas consolidadas
 
@@ -373,22 +440,27 @@ flowchart TB
 | Testing unitario del dominio | Validacion de reglas en `FranchiseServiceTest`. | `src/test/java/com/franchise/api/service/FranchiseServiceTest.java` |
 | Gobernanza de sucursales | `updateBranchStatus`, `deleteBranch` y `deleteFranchise` encapsulan reglas para activar/desactivar y depurar datos. | `src/main/java/com/franchise/api/service/FranchiseService.java` |
 | Seguridad con JWT | Spring Security + filtros JWT para proteger rutas segun rol. | `src/main/java/com/franchise/api/security` |
+| Gestion de usuarios | Servicio dedicado `UserManagementService` para crear y activar/desactivar cuentas con roles. | `src/main/java/com/franchise/api/security/UserManagementService.java` |
 
 > Documentar cualquier patron adicional (p. ej. guards y servicios en Angular) con enlaces a los archivos pertinentes del frontend.
 
 ## 8. Seguridad y roles
 
 - Login REST: `POST /api/v1/auth/login` retorna token JWT, roles y expiracin (`AuthController`).
+- Recuperacion: `POST /api/v1/auth/forgot-password` genera token de 15 minutos y lo devuelve en la respuesta para que el usuario lo use en `POST /api/v1/auth/reset-password`. Para verificar vigencia existe `POST /api/v1/auth/validate-reset-token`.
 - Roles:
   - `ADMIN`: CRUD completo de franquicias, sucursales y productos; activacin/desactivacin global.
   - `USER`: acceso de solo lectura a catlogo y mtricas.
 - Proteccin granular (`SecurityConfig`):
   - `GET /api/v1/franchises/**` -> `ADMIN` o `USER`.
   - Mutaciones (`POST`, `PATCH`, `DELETE`) bajo `/api/**` -> solo `ADMIN`.
+  - `GET/POST/PATCH /api/v1/users/**` -> solo `ADMIN` (gestion de cuentas).
+  - `POST /api/v1/auth/change-password` -> disponible para cualquier usuario autenticado (cambio obligatorio de contrasena temporal).
 - Frontend:
   - Interceptor agrega `Authorization: Bearer` automticamente (`auth.interceptor.ts`).
   - Guards redirigen a `/login` si la sesin expira (`auth.guard.ts`).
   - La UI oculta acciones administrativas a usuarios de solo lectura.
+  - Los administradores cuentan con el panel `/users` (`UserManagementComponent`) para crear cuentas, asignar roles, activar/desactivar y eliminar usuarios.
 - Credenciales iniciales (semilla automtica):
   - `admin / Admin123!` (roles `ADMIN`, `USER`)
   - `analyst / Analyst123!` (rol `USER`)

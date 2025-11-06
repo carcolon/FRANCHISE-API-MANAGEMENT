@@ -56,6 +56,11 @@ export class BranchCardComponent implements OnChanges {
       };
       this.branchState.set(branchCopy);
       this.branchForm.patchValue({ name: this.branch.name });
+      if (this.adminMode) {
+        this.branchForm.enable({ emitEvent: false });
+      } else {
+        this.branchForm.disable({ emitEvent: false });
+      }
       this.resetProductStates(this.branch.products ?? []);
       this.syncAddProductFormState(branchCopy.active);
     }

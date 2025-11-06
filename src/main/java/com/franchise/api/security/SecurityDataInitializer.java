@@ -20,6 +20,8 @@ public class SecurityDataInitializer implements CommandLineRunner {
                 .orElseGet(() -> repository.save(UserAccount.builder()
                         .username("admin")
                         .password(passwordEncoder.encode("Admin123!"))
+                        .fullName("Administrador Global")
+                        .email("cfca5@hotmail.com")
                         .roles(Set.of(Role.ADMIN, Role.USER))
                         .build()));
 
@@ -27,6 +29,8 @@ public class SecurityDataInitializer implements CommandLineRunner {
                 .orElseGet(() -> repository.save(UserAccount.builder()
                         .username("analyst")
                         .password(passwordEncoder.encode("Analyst123!"))
+                        .fullName("Analista Invitado")
+                        .email("analyst@example.com")
                         .roles(Set.of(Role.USER))
                         .build()));
     }

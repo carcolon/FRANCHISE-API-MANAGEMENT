@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { APP_CONFIG } from '../config/app-config';
-import { AuthResponse, AuthUser } from '../models/auth.model';
+import { AuthResponse, AuthUser, ForgotPasswordResponse, MessageResponse } from '../models/auth.model';
 
 interface LoginPayload {
   username: string;
@@ -12,7 +12,7 @@ interface LoginPayload {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'franchise-auth';
-  private readonly authUrl = `${APP_CONFIG.apiBaseUrl}/auth/login`;
+  private readonly authBaseUrl = `${APP_CONFIG.apiBaseUrl}/auth`;
 
   readonly currentUser = signal<AuthUser | null>(this.restoreSession());
   readonly authenticating = signal(false);
@@ -24,14 +24,15 @@ export class AuthService {
     const payload: LoginPayload = { username, password };
     this.authenticating.set(true);
     this.error.set(null);
-    return this.http.post<AuthResponse>(this.authUrl, payload).pipe(
+    return this.http.post<AuthResponse>(`${this.authBaseUrl}/login`, payload).pipe(
       tap({
         next: (response) => {
           const user: AuthUser = {
             username: response.username,
             roles: response.roles,
             token: response.token,
-            expiresAt: response.expiresAt
+            expiresAt: response.expiresAt,
+            passwordChangeRequired: response.passwordChangeRequired
           };
           this.persist(user);
           this.currentUser.set(user);
@@ -48,6 +49,37 @@ export class AuthService {
   logout(): void {
     this.currentUser.set(null);
     localStorage.removeItem(this.storageKey);
+  }
+
+  forgotPassword(username: string): Observable<ForgotPasswordResponse> {
+    return this.http.post<ForgotPasswordResponse>(`${this.authBaseUrl}/forgot-password`, { username });
+  }
+
+  resetPassword(token: string, password: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.authBaseUrl}/reset-password`, {
+      token,
+      newPassword: password
+    });
+  }
+
+  validateResetToken(token: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.authBaseUrl}/validate-reset-token`, { token });
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.authBaseUrl}/change-password`, {
+      currentPassword,
+      newPassword
+    }).pipe(
+      tap(() => {
+        const user = this.currentUser();
+        if (user) {
+          const updated: AuthUser = { ...user, passwordChangeRequired: false };
+          this.persist(updated);
+          this.currentUser.set(updated);
+        }
+      })
+    );
   }
 
   getToken(): string | null {
@@ -78,7 +110,10 @@ export class AuthService {
     try {
       const parsed = JSON.parse(stored) as AuthUser;
       if (parsed.expiresAt && parsed.expiresAt > Date.now()) {
-        return parsed;
+        return {
+          ...parsed,
+          passwordChangeRequired: parsed.passwordChangeRequired ?? false
+        };
       }
     } catch {
       localStorage.removeItem(this.storageKey);

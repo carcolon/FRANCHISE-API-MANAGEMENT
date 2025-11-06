@@ -258,3 +258,4 @@ export class FranchiseDetailComponent implements OnInit, OnDestroy {
     });
   }
 }
+

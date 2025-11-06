@@ -16,17 +16,19 @@
         [class.invalid]="loginForm.controls.username.invalid && loginForm.controls.username.touched"
       />
 
-      <label for="password">Contraseña</label>
+      <label for="password">Contrasena</label>
       <input
         id="password"
         type="password"
         formControlName="password"
-        placeholder="••••••••"
+        placeholder="********"
         [class.invalid]="loginForm.controls.password.invalid && loginForm.controls.password.touched"
       />
 
+      <a class="link" routerLink="/forgot-password">Olvidaste tu contrasena?</a>
+
       <button type="submit" class="primary" [disabled]="isLoading()">
-        {{ isLoading() ? 'Ingresando...' : 'Iniciar sesión' }}
+        {{ isLoading() ? 'Ingresando...' : 'Iniciar sesion' }}
       </button>
     </form>
 

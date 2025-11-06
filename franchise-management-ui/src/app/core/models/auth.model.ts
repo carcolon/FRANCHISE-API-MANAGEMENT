@@ -3,6 +3,7 @@ export interface AuthUser {
   roles: string[];
   token: string;
   expiresAt: number;
+  passwordChangeRequired: boolean;
 }
 
 export interface AuthResponse {
@@ -10,4 +11,14 @@ export interface AuthResponse {
   username: string;
   roles: string[];
   expiresAt: number;
+  passwordChangeRequired: boolean;
+}
+
+export interface ForgotPasswordResponse {
+  message: string;
+  resetToken?: string | null;
+}
+
+export interface MessageResponse {
+  message: string;
 }

@@ -1,35 +1,37 @@
 <div class="app-shell">
   <header class="topbar">
-    <div class="brand" routerLink="/franchises">
-      <div class="logo">FM</div>
-      <div class="brand-text">
-        <strong>Franchise API Management</strong>
-        <span>Enterprise Control Center</span>
+    <div class="topbar-inner">
+      <div class="brand" routerLink="/franchises">
+        <div class="logo">FM</div>
+        <div class="brand-text">
+          <strong>Franchise API Management</strong>
+          <span>Enterprise Control Center</span>
+        </div>
       </div>
+      <nav *ngIf="isAuthenticated()">
+        <a
+          *ngFor="let item of navigation()"
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+        >
+          {{ item.label }}
+        </a>
+      </nav>
+      <div class="user-chip" *ngIf="isAuthenticated(); else loginLink">
+        <div>
+          <span class="status" [class.admin]="isAdmin()"></span>
+        </div>
+        <div class="user-meta">
+          <strong>{{ user()?.username }}</strong>
+          <small>{{ isAdmin() ? 'Administrador' : 'Usuario' }}</small>
+        </div>
+        <button type="button" class="ghost" (click)="logout()">Salir</button>
+      </div>
+      <ng-template #loginLink>
+        <a routerLink="/login" class="login-btn">Iniciar sesión</a>
+      </ng-template>
     </div>
-    <nav *ngIf="isAuthenticated()">
-      <a
-        *ngFor="let item of navigation"
-        [routerLink]="item.path"
-        routerLinkActive="active"
-        [routerLinkActiveOptions]="{ exact: true }"
-      >
-        {{ item.label }}
-      </a>
-    </nav>
-    <div class="user-chip" *ngIf="isAuthenticated(); else loginLink">
-      <div>
-        <span class="status" [class.admin]="isAdmin()"></span>
-      </div>
-      <div class="user-meta">
-        <strong>{{ user()?.username }}</strong>
-        <small>{{ isAdmin() ? 'Administrador' : 'Usuario' }}</small>
-      </div>
-      <button type="button" class="ghost" (click)="logout()">Salir</button>
-    </div>
-    <ng-template #loginLink>
-      <a routerLink="/login" class="login-btn">Iniciar sesión</a>
-    </ng-template>
   </header>
 
   <main class="content">
@@ -40,3 +42,7 @@
     &copy; {{ currentYear }} Franchise API Management - Plataforma interna
   </footer>
 </div>
+
+<app-password-change-modal
+  [visible]="mustChangePassword()"
+></app-password-change-modal>

@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.Instant;
 import java.util.Set;
 
 @Getter
@@ -27,9 +28,20 @@ public class UserAccount {
 
     private String password;
 
+    private String fullName;
+
+    private String email;
+
     @Builder.Default
     private boolean active = true;
 
     @Builder.Default
     private Set<Role> roles = Set.of(Role.USER);
+
+    private String passwordResetToken;
+
+    private Instant passwordResetExpiration;
+
+    @Builder.Default
+    private boolean passwordChangeRequired = false;
 }

@@ -2,7 +2,16 @@ package com.franchise.api.controller;
 
 import com.franchise.api.dto.AuthRequest;
 import com.franchise.api.dto.AuthResponse;
+import com.franchise.api.dto.ForgotPasswordRequest;
+import com.franchise.api.dto.ForgotPasswordResponse;
+import com.franchise.api.dto.MessageResponse;
+import com.franchise.api.dto.ResetPasswordRequest;
+import com.franchise.api.dto.ValidateTokenRequest;
+import com.franchise.api.dto.ChangePasswordRequest;
 import com.franchise.api.security.JwtService;
+import com.franchise.api.security.PasswordResetService;
+import com.franchise.api.security.UserAccount;
+import com.franchise.api.security.UserAccountRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +34,8 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
+    private final PasswordResetService passwordResetService;
+    private final UserAccountRepository userAccountRepository;
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest request) {
@@ -38,6 +49,31 @@ public class AuthController {
                 .map(GrantedAuthority::getAuthority)
                 .map(authority -> authority.replaceFirst("^ROLE_", ""))
                 .toList();
-        return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), roles, expiresAt));
+        boolean passwordChangeRequired = userAccountRepository.findByUsernameIgnoreCase(userDetails.getUsername())
+                .map(UserAccount::isPasswordChangeRequired)
+                .orElse(false);
+        return ResponseEntity.ok(new AuthResponse(token, userDetails.getUsername(), roles, expiresAt, passwordChangeRequired));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ForgotPasswordResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(passwordResetService.initiateReset(request.username()));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(passwordResetService.resetPassword(request.token(), request.newPassword()));
+    }
+
+    @PostMapping("/validate-reset-token")
+    public ResponseEntity<MessageResponse> validateResetToken(@Valid @RequestBody ValidateTokenRequest request) {
+        return ResponseEntity.ok(passwordResetService.validateToken(request.token()));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<MessageResponse> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+                                                          Authentication authentication) {
+        return ResponseEntity.ok(passwordResetService.changePassword(authentication.getName(),
+                request.currentPassword(), request.newPassword()));
     }
 }
