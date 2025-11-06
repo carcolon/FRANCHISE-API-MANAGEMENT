@@ -1,6 +1,16 @@
-﻿# Franchise API Management
+# Franchise API Management
+
+[![CI](https://github.com/carcolon/FRANCHISE-API-MANAGEMENT/actions/workflows/ci.yml/badge.svg)](https://github.com/carcolon/FRANCHISE-API-MANAGEMENT/actions/workflows/ci.yml)
 
 API REST para administrar franquicias, sus sucursales y el inventario de productos. Permite crear, actualizar, consultar y eliminar entidades, ademas de obtener el producto con mayor stock por sucursal.
+
+## Integracion continua
+
+- El repositorio incluye un pipeline de GitHub Actions (`.github/workflows/ci.yml`) que ejecuta:
+  - `mvn -B test` sobre el backend para validar la capa de servicios.
+  - `npm ci && npm run build` dentro de `franchise-management-ui/` para comprobar que la SPA compila sin errores.
+- Se ejecuta en cada *push* a las ramas main/master y en todos los *pull requests* dirigidos a ellas.
+- Puedes extenderlo agregando pruebas de UI, linting o despliegues editando ese workflow.
 
 ## Arquitectura y tecnologias
 
@@ -59,8 +69,8 @@ Si la API corre en otra direccion/puerto, actualiza src/app/core/config/app-conf
 1. Asegurate de que MongoDB este disponible:
    - Con Docker Compose: docker compose up -d mongo
    - O bien inicia tu propia instancia de MongoDB (servicio local o remoto administrado con MongoDB Compass).
-     - Instala MongoDB Community Server o usa Atlas y conéctate desde Compass.
-     - Crea la base `franchise_db` (se generará automáticamente la primera vez que la API escriba datos).
+     - Instala MongoDB Community Server o usa Atlas y conÃƒÆ’Ã‚Â©ctate desde Compass.
+     - Crea la base `franchise_db` (se generarÃƒÆ’Ã‚Â¡ automÃƒÆ’Ã‚Â¡ticamente la primera vez que la API escriba datos).
      - Opcional: agrega un usuario dedicado y actualiza la URI con credenciales (`mongodb://usuario:password@host:27017/franchise_db?authSource=admin`).
 2. (Opcional) Define la URI personalizada:
    - PowerShell: setx MONGODB_URI "mongodb://usuario:password@host:27017/franchise_db?authSource=admin"
@@ -171,4 +181,6 @@ unning.
 - **No puedo agregar productos a una sucursal inactiva**: vuelve a activar la sucursal con `PATCH /api/v1/franchises/{franchiseId}/branches/{branchId}/status` antes de enviar nuevas altas.
 - **Puerto 8080 en uso**: cambia el puerto con --server.port=9090 o ajusta pplication.yml.
 - **Advertencia de API deprecada**: compila con mvn compile -Xlint:deprecation para identificar el metodo y sustituirlo en el servicio correspondiente.
+
+
 
