@@ -1,4 +1,4 @@
-# Franchise API Management
+﻿# Franchise API Management
 
 [![CI](https://github.com/carcolon/FRANCHISE-API-MANAGEMENT/actions/workflows/ci.yml/badge.svg)](https://github.com/carcolon/FRANCHISE-API-MANAGEMENT/actions/workflows/ci.yml)
 
@@ -69,8 +69,13 @@ Si la API corre en otra direccion/puerto, actualiza src/app/core/config/app-conf
 1. Asegurate de que MongoDB este disponible:
    - Con Docker Compose: docker compose up -d mongo
    - O bien inicia tu propia instancia de MongoDB (servicio local o remoto administrado con MongoDB Compass).
+<<<<<<< HEAD
      - Instala MongoDB Community Server o usa Atlas y conÃƒÆ’Ã‚Â©ctate desde Compass.
      - Crea la base `franchise_db` (se generarÃƒÆ’Ã‚Â¡ automÃƒÆ’Ã‚Â¡ticamente la primera vez que la API escriba datos).
+=======
+     - Instala MongoDB Community Server o usa Atlas y conéctate desde Compass.
+     - Crea la base `franchise_db` (se generará automáticamente la primera vez que la API escriba datos).
+>>>>>>> a6d9a4ba5ec46d193c32cc3103da177762b4d9a0
      - Opcional: agrega un usuario dedicado y actualiza la URI con credenciales (`mongodb://usuario:password@host:27017/franchise_db?authSource=admin`).
 2. (Opcional) Define la URI personalizada:
    - PowerShell: setx MONGODB_URI "mongodb://usuario:password@host:27017/franchise_db?authSource=admin"
@@ -181,6 +186,9 @@ unning.
 - **No puedo agregar productos a una sucursal inactiva**: vuelve a activar la sucursal con `PATCH /api/v1/franchises/{franchiseId}/branches/{branchId}/status` antes de enviar nuevas altas.
 - **Puerto 8080 en uso**: cambia el puerto con --server.port=9090 o ajusta pplication.yml.
 - **Advertencia de API deprecada**: compila con mvn compile -Xlint:deprecation para identificar el metodo y sustituirlo en el servicio correspondiente.
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> a6d9a4ba5ec46d193c32cc3103da177762b4d9a0
 
