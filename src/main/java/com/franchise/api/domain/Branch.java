@@ -21,5 +21,8 @@ public class Branch {
     private String name;
 
     @Builder.Default
+    private boolean active = true;
+
+    @Builder.Default
     private List<Product> products = new ArrayList<>();
 }

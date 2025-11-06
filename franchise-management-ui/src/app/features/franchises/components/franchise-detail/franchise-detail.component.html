@@ -1,0 +1,123 @@
+<section class="breadcrumb">
+  <a routerLink="/franchises"><- Volver al panel</a>
+  <span *ngIf="franchise()">FRANQUICIA - {{ franchise()?.id }}</span>
+</section>
+
+<section *ngIf="loading(); else content" class="loading-block">
+  <span class="spinner" aria-hidden="true"></span>
+  <p>Cargando informacion de la franquicia...</p>
+</section>
+
+<ng-template #content>
+  <ng-container *ngIf="franchise(); else notFound">
+    <section class="franchise-header">
+      <div>
+        <h1>{{ franchise()?.name }}</h1>
+        <p>Gestiona sucursales, inventario y metricas clave desde un unico lugar.</p>
+      </div>
+      <div class="header-actions">
+        <form [formGroup]="franchiseForm" (ngSubmit)="onUpdateFranchise()" novalidate>
+          <label for="franchise-name">Nombre oficial</label>
+          <div class="form-row">
+            <input
+              id="franchise-name"
+              type="text"
+              formControlName="name"
+              placeholder="Nombre de la franquicia"
+            />
+            <button class="primary" type="submit" [disabled]="franchiseSaving()">
+              {{ franchiseSaving() ? 'Guardando...' : 'Actualizar nombre' }}
+            </button>
+          </div>
+          <span class="field-error" *ngIf="franchiseForm.invalid && franchiseForm.touched">
+            El nombre debe tener al menos 3 caracteres.
+          </span>
+        </form>
+        <button type="button" class="danger outline" (click)="onDeleteFranchise()" [disabled]="deletingFranchise()">
+          {{ deletingFranchise() ? 'Eliminando...' : 'Eliminar franquicia' }}
+        </button>
+      </div>
+    </section>
+
+    <section class="alerts">
+      <p class="alert success" *ngIf="success()">{{ success() }}</p>
+      <p class="alert error" *ngIf="error()">{{ error() }}</p>
+    </section>
+
+    <section class="top-products">
+      <header>
+        <div>
+          <h2>Productos destacados por sucursal</h2>
+          <p>Identifica rapidamente el articulo con mayor stock disponible por cada punto de venta.</p>
+        </div>
+        <button class="ghost" type="button" (click)="fetchTopProducts()" [disabled]="topProductsLoading()">
+          {{ topProductsLoading() ? 'Actualizando...' : 'Actualizar metricas' }}
+        </button>
+      </header>
+      <div class="cards" *ngIf="topProducts().length; else noTopProducts">
+        <article class="metric-card" *ngFor="let item of topProducts()">
+          <h3>{{ item.branchName }}</h3>
+          <p>{{ item.product.name }}</p>
+          <span>{{ item.product.stock }} unidades en stock</span>
+        </article>
+      </div>
+      <ng-template #noTopProducts>
+        <p class="placeholder" *ngIf="!topProductsLoading()">
+          Aun no hay datos suficientes. Agrega productos con stock positivo para visualizar este tablero.
+        </p>
+      </ng-template>
+    </section>
+
+    <section class="new-branch">
+      <h2>Crear nueva sucursal</h2>
+      <form [formGroup]="branchForm" (ngSubmit)="onCreateBranch()" novalidate>
+        <div class="form-row">
+          <input
+            type="text"
+            formControlName="name"
+            placeholder="Ej. Sucursal Centro Monterrey"
+          />
+          <button class="primary" type="submit" [disabled]="branchCreating()">
+            {{ branchCreating() ? 'Creando...' : 'Registrar sucursal' }}
+          </button>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" formControlName="active" />
+          <span>Marcar sucursal como activa al crearla</span>
+        </label>
+        <span class="field-error" *ngIf="branchForm.invalid && branchForm.touched">
+          El nombre debe tener al menos 3 caracteres.
+        </span>
+      </form>
+    </section>
+
+    <section class="branches">
+      <header>
+        <h2>Sucursales registradas</h2>
+        <span>{{ franchise()?.branches?.length ?? 0 }} sucursales</span>
+      </header>
+      <div class="branch-grid" *ngIf="franchise()?.branches?.length; else emptyBranches">
+        <app-branch-card
+          *ngFor="let branch of franchise()?.branches ?? []"
+          [franchiseId]="franchise()?.id ?? ''"
+          [branch]="branch"
+          (branchUpdated)="onBranchUpdated($event)"
+          (branchDeleted)="onBranchDeleted($event)"
+        ></app-branch-card>
+      </div>
+      <ng-template #emptyBranches>
+        <div class="placeholder">
+          No existen sucursales registradas. Crea la primera para comenzar a operar.
+        </div>
+      </ng-template>
+    </section>
+  </ng-container>
+</ng-template>
+
+<ng-template #notFound>
+  <section class="placeholder not-found">
+    <h2>No encontramos esta franquicia</h2>
+    <p>Verifica el identificador o regresa al panel para seleccionar otra franquicia.</p>
+    <a routerLink="/franchises" class="primary-link">Volver al listado</a>
+  </section>
+</ng-template>

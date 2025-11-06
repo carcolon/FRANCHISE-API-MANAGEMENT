@@ -1,0 +1,252 @@
+.branch-card {
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-subtle);
+}
+
+h3 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: var(--color-heading);
+}
+
+header p {
+  margin: 0;
+  color: var(--color-text-subtle);
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(12, 187, 88, 0.16);
+  color: var(--color-success-dark);
+  margin-top: 0.4rem;
+}
+
+.status-badge.inactive {
+  background: rgba(220, 53, 69, 0.12);
+  color: var(--color-danger);
+}
+
+.rename-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.rename-controls {
+  display: flex;
+  gap: 0.6rem;
+}
+
+input[type='text'],
+input[type='number'] {
+  border-radius: 0.6rem;
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 0.75rem;
+  background: var(--surface-base);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+}
+
+input[type='text']:focus,
+input[type='number']:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.12);
+}
+
+input.invalid {
+  border-color: var(--color-danger);
+}
+
+input.pending {
+  opacity: 0.6;
+}
+
+button {
+  border: none;
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+button.primary {
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+}
+
+button.secondary {
+  background: rgba(0, 102, 255, 0.08);
+  color: var(--color-primary);
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-heading);
+}
+
+button.ghost:hover:not(:disabled) {
+  border-color: var(--border-color);
+  transform: translateY(-1px);
+}
+
+button.danger {
+  background: rgba(220, 53, 69, 0.12);
+  color: var(--color-danger);
+}
+
+.branch-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.alert {
+  margin: 0;
+  border-radius: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+.alert.success {
+  background: rgba(12, 187, 88, 0.14);
+  color: var(--color-success-dark);
+}
+
+.alert.error {
+  background: rgba(220, 53, 69, 0.14);
+  color: var(--color-danger);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: end;
+}
+
+.form-grid .actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.field-error {
+  color: var(--color-danger);
+  font-size: 0.8rem;
+}
+
+.products header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.products h4,
+.add-product h4 {
+  margin: 0;
+  font-size: 1.05rem;
+  color: var(--color-heading);
+}
+
+.add-product .hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.85rem;
+  color: var(--color-text-subtle);
+}
+
+.product-table {
+  border: 1px solid var(--border-color);
+  border-radius: 0.9rem;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 0.8rem;
+  border-top: 1px solid var(--border-color);
+}
+
+th {
+  text-align: left;
+  background: var(--surface-subtle);
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  color: var(--color-text-subtle);
+}
+
+thead tr:first-child th {
+  border-top: none;
+}
+
+.fit {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.product-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.empty {
+  border: 1px dashed var(--border-color);
+  border-radius: 0.8rem;
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--color-text-subtle);
+}
+
+@media (max-width: 920px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .product-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .fit {
+    min-width: 140px;
+  }
+}

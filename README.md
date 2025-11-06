@@ -1,4 +1,4 @@
-# Franchise API Management
+﻿# Franchise API Management
 
 API REST para administrar franquicias, sus sucursales y el inventario de productos. Permite crear, actualizar, consultar y eliminar entidades, ademas de obtener el producto con mayor stock por sucursal.
 
@@ -11,6 +11,30 @@ API REST para administrar franquicias, sus sucursales y el inventario de product
 - SpringDoc OpenAPI 3 (Swagger UI)
 - Maven para construccion y gestion de dependencias
 - Docker y Docker Compose (opcional) para ejecucion contenerizada
+- Angular 17 (frontend en ranchise-management-ui/)
+
+## Cliente web (Angular)
+
+El repositorio incluye una interfaz SaaS construida en Angular que consume esta API.
+
+1. Cambia al directorio del frontend:
+   `ash
+   cd franchise-management-ui
+   `
+2. Instala dependencias y levanta el dev server:
+   `ash
+   npm install
+   npm start
+   `
+3. La UI quedara disponible en http://localhost:4200 y apunte por defecto a http://localhost:8080/api/v1.
+
+Para builds de produccion:
+`ash
+npm run build
+`
+Los artefactos se generan en ranchise-management-ui/dist/franchise-management-ui.
+
+Si la API corre en otra direccion/puerto, actualiza src/app/core/config/app-config.ts o exporta la variable correspondiente en tu pipeline.
 
 ## Requisitos previos
 
@@ -22,95 +46,101 @@ API REST para administrar franquicias, sus sucursales y el inventario de product
 ## Configuracion rapida
 
 1. Clonar el repositorio.
-2. (Opcional) Crear un archivo `.env` o definir la variable `MONGODB_URI` si se desea apuntar a una instancia distinta a `mongodb://localhost:27017/franchise_db`.
+2. (Opcional) Crear un archivo .env o definir la variable MONGODB_URI si se desea apuntar a una instancia distinta (por ejemplo mongodb://localhost:27017/franchise_db o una URI con autenticacion).
 3. Verificar versiones:
-   ```bash
+   `ash
    mvn -v
    java -version
    docker --version   # solo si se utilizara Docker
-   ```
+   `
 
 ## Ejecucion local con Maven
 
 1. Asegurate de que MongoDB este disponible:
-   - Con Docker Compose: `docker compose up -d mongo`
-   - O bien inicia tu propia instancia de MongoDB.
+   - Con Docker Compose: docker compose up -d mongo
+   - O bien inicia tu propia instancia de MongoDB (servicio local o remoto administrado con MongoDB Compass).
+     - Instala MongoDB Community Server o usa Atlas y conéctate desde Compass.
+     - Crea la base `franchise_db` (se generará automáticamente la primera vez que la API escriba datos).
+     - Opcional: agrega un usuario dedicado y actualiza la URI con credenciales (`mongodb://usuario:password@host:27017/franchise_db?authSource=admin`).
 2. (Opcional) Define la URI personalizada:
-   - PowerShell: `setx MONGODB_URI "mongodb://usuario:password@host:27017/franchise_db"`
-   - Bash: `export MONGODB_URI="mongodb://usuario:password@host:27017/franchise_db"`
+   - PowerShell: setx MONGODB_URI "mongodb://usuario:password@host:27017/franchise_db?authSource=admin"
+   - Bash: export MONGODB_URI="mongodb://usuario:password@host:27017/franchise_db?authSource=admin"
 3. Inicia la aplicacion:
-   ```bash
+   `ash
    mvn spring-boot:run
-   ```
-4. La API quedara disponible en `http://localhost:8080`.
+   `
+4. La API quedara disponible en http://localhost:8080.
 
 ### Parar la aplicacion
 
-Presiona `Ctrl+C` en la terminal donde se ejecuto `mvn spring-boot:run`.
+Presiona Ctrl+C en la terminal donde se ejecuto mvn spring-boot:run.
 
 ## Ejecucion con Docker Compose
 
 1. Construir e iniciar todos los servicios:
-   ```bash
+   `ash
    docker compose up --build
-   ```
-   - Se inicia un contenedor `mongo` con persistencia en volumen
-   - Se construye la imagen de la aplicacion usando el Dockerfile y se expone en `http://localhost:8080`
+   `
+   - Se inicia un contenedor mongo con persistencia en volumen
+   - Se construye la imagen de la aplicacion usando el Dockerfile y se expone en http://localhost:8080\n   - La API se conecta a Mongo con la URI mongodb://root:example@mongo:27017/franchise_db?authSource=admin
 2. Ver logs:
-   ```bash
+   `ash
    docker compose logs -f franchise-api
-   ```
+   `
 3. Detener y limpiar recursos:
-   ```bash
+   `ash
    docker compose down
-   ```
-   - Para eliminar volumenes agregue `--volumes`.
+   `
+   - Para eliminar volumenes agregue --volumes.
 
-> Nota: si PowerShell indica `docker : The term 'docker' is not recognized`, agrega `C:\Program Files\Docker\Docker\resources\bin` al PATH o abre una nueva terminal con soporte Docker.
+> Nota: si PowerShell indica docker : The term 'docker' is not recognized, agrega C:\Program Files\Docker\Docker\resources\bin al PATH o abre una nueva terminal con soporte Docker.
 
 ## Configuracion de la aplicacion
 
-Valor por defecto en `src/main/resources/application.yml`:
-```yaml
+Valor por defecto en src/main/resources/application.yml:
+`yaml
 spring:
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/franchise_db}
-```
-Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades de linea de comando (`--spring.data.mongodb.uri=...`).
+      uri: 
+`
+Se puede sobrescribir mediante variable de entorno MONGODB_URI o propiedades de linea de comando (--spring.data.mongodb.uri=...).
 
 ## Endpoints principales
 
 | Recurso | Metodo | Ruta | Descripcion |
 |---------|--------|------|-------------|
-| Franquicias | POST | `/api/v1/franchises` | Crea una franquicia |
-| Franquicias | GET | `/api/v1/franchises` | Lista todas las franquicias |
-| Franquicias | GET | `/api/v1/franchises/{franchiseId}` | Obtiene una franquicia |
-| Franquicias | PATCH | `/api/v1/franchises/{franchiseId}` | Actualiza el nombre |
-| Sucursales | POST | `/api/v1/franchises/{franchiseId}/branches` | Agrega sucursal |
-| Sucursales | PATCH | `/api/v1/franchises/{franchiseId}/branches/{branchId}` | Actualiza nombre |
-| Productos | POST | `/api/v1/franchises/{franchiseId}/branches/{branchId}/products` | Agrega producto |
-| Productos | PATCH | `/api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId}` | Actualiza nombre |
-| Productos | PATCH | `/api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock` | Actualiza stock |
-| Productos | DELETE | `/api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId}` | Elimina producto |
-| Consultas | GET | `/api/v1/franchises/{franchiseId}/branches/top-products` | Producto con mayor stock por sucursal |
+| Franquicias | POST | /api/v1/franchises | Crea una franquicia |
+| Franquicias | GET | /api/v1/franchises | Lista todas las franquicias |
+| Franquicias | GET | /api/v1/franchises/{franchiseId} | Obtiene una franquicia |
+| Franquicias | PATCH | /api/v1/franchises/{franchiseId} | Actualiza el nombre |
+| Franquicias | DELETE | /api/v1/franchises/{franchiseId} | Elimina una franquicia (incluye sucursales y productos) |
+| Sucursales | POST | /api/v1/franchises/{franchiseId}/branches | Agrega sucursal |
+| Sucursales | PATCH | /api/v1/franchises/{franchiseId}/branches/{branchId} | Actualiza nombre |
+| Sucursales | PATCH | /api/v1/franchises/{franchiseId}/branches/{branchId}/status | Activa o desactiva la sucursal |
+| Sucursales | DELETE | /api/v1/franchises/{franchiseId}/branches/{branchId} | Elimina sucursal |
+| Productos | POST | /api/v1/franchises/{franchiseId}/branches/{branchId}/products | Agrega producto |
+| Productos | PATCH | /api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId} | Actualiza nombre |
+| Productos | PATCH | /api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId}/stock | Actualiza stock |
+| Productos | DELETE | /api/v1/franchises/{franchiseId}/branches/{branchId}/products/{productId} | Elimina producto |
+| Consultas | GET | /api/v1/franchises/{franchiseId}/branches/top-products | Producto con mayor stock por sucursal |
 
 ## Documentacion OpenAPI
 
-- Swagger UI: `http://localhost:8080/swagger-ui.html`
-- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
-- OpenAPI YAML: `http://localhost:8080/v3/api-docs?format=yaml`
+- Swagger UI: http://localhost:8080/swagger-ui.html
+- OpenAPI JSON: http://localhost:8080/v3/api-docs
+- OpenAPI YAML: http://localhost:8080/v3/api-docs?format=yaml
 
 ## Pruebas
 
 Ejecutar pruebas unitarias:
-```bash
+`ash
 mvn test
-```
+`
 Generar paquete sin pruebas (build CI/CD):
-```bash
+`ash
 mvn -DskipTests clean package
-```
+`
 
 ## Estructura del proyecto
 
@@ -129,10 +159,16 @@ mvn -DskipTests clean package
       - service/
     - resources/application.yml
   - test/java/com/franchise/api/service/
+- franchise-management-ui/
+  - README.md
+  - src/app/... (Angular SPA)
+
 ## Solucion de problemas
 
-- **`docker : command not found`**: agrega el directorio de Docker CLI al PATH (`C:\Program Files\Docker\Docker\resources\bin`) o reinicia Docker Desktop.
-- **Fallo al conectar con MongoDB**: valida `MONGODB_URI`, la base de datos debe existir y aceptar conexiones. Si usas Docker Compose, confirma con `docker compose ps` que el contenedor este en estado `running`.
-- **Puerto 8080 en uso**: cambia el puerto con `--server.port=9090` o ajusta `application.yml`.
-- **Advertencia de API deprecada**: compila con `mvn compile -Xlint:deprecation` para identificar el metodo y sustituirlo en el servicio correspondiente.
+- **docker : command not found**: agrega el directorio de Docker CLI al PATH (C:\Program Files\Docker\Docker\resources\bin) o reinicia Docker Desktop.
+- **Fallo al conectar con MongoDB**: valida MONGODB_URI, la base de datos debe existir y aceptar conexiones. Si usas Docker Compose, confirma con docker compose ps que el contenedor este en estado 
+unning.
+- **No puedo agregar productos a una sucursal inactiva**: vuelve a activar la sucursal con `PATCH /api/v1/franchises/{franchiseId}/branches/{branchId}/status` antes de enviar nuevas altas.
+- **Puerto 8080 en uso**: cambia el puerto con --server.port=9090 o ajusta pplication.yml.
+- **Advertencia de API deprecada**: compila con mvn compile -Xlint:deprecation para identificar el metodo y sustituirlo en el servicio correspondiente.
 

@@ -1,0 +1,33 @@
+<div class="app-shell">
+  <header class="topbar">
+    <div class="brand" routerLink="/franchises">
+      <div class="logo">FM</div>
+      <div class="brand-text">
+        <strong>Franchise API Management</strong>
+        <span>Enterprise Control Center</span>
+      </div>
+    </div>
+    <nav>
+      <a
+        *ngFor="let item of navigation"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+        {{ item.label }}
+      </a>
+    </nav>
+    <div class="user-chip">
+      <span class="status"></span>
+      SaaS Operativo
+    </div>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+
+  <footer class="footer">
+    &copy; {{ currentYear }} Franchise API Management - Plataforma interna
+  </footer>
+</div>

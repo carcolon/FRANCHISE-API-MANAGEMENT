@@ -8,6 +8,7 @@ import com.franchise.api.dto.FranchiseResponse;
 import com.franchise.api.dto.ProductResponse;
 import com.franchise.api.dto.TopProductPerBranchResponse;
 import com.franchise.api.dto.UpdateBranchNameRequest;
+import com.franchise.api.dto.UpdateBranchStatusRequest;
 import com.franchise.api.dto.UpdateFranchiseNameRequest;
 import com.franchise.api.dto.UpdateProductNameRequest;
 import com.franchise.api.dto.UpdateProductStockRequest;
@@ -61,6 +62,12 @@ public class FranchiseController {
         return ResponseEntity.ok(franchiseService.updateFranchiseName(franchiseId, request));
     }
 
+    @DeleteMapping("/{franchiseId}")
+    public ResponseEntity<Void> deleteFranchise(@PathVariable String franchiseId) {
+        franchiseService.deleteFranchise(franchiseId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{franchiseId}/branches")
     public ResponseEntity<BranchResponse> addBranch(@PathVariable String franchiseId,
                                                     @Valid @RequestBody CreateBranchRequest request) {
@@ -77,6 +84,20 @@ public class FranchiseController {
                                                            @PathVariable String branchId,
                                                            @Valid @RequestBody UpdateBranchNameRequest request) {
         return ResponseEntity.ok(franchiseService.updateBranchName(franchiseId, branchId, request));
+    }
+
+    @PatchMapping("/{franchiseId}/branches/{branchId}/status")
+    public ResponseEntity<BranchResponse> updateBranchStatus(@PathVariable String franchiseId,
+                                                             @PathVariable String branchId,
+                                                             @Valid @RequestBody UpdateBranchStatusRequest request) {
+        return ResponseEntity.ok(franchiseService.updateBranchStatus(franchiseId, branchId, request));
+    }
+
+    @DeleteMapping("/{franchiseId}/branches/{branchId}")
+    public ResponseEntity<Void> deleteBranch(@PathVariable String franchiseId,
+                                             @PathVariable String branchId) {
+        franchiseService.deleteBranch(franchiseId, branchId);
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{franchiseId}/branches/{branchId}/products")
