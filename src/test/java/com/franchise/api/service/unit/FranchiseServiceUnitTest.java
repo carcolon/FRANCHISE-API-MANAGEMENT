@@ -1,4 +1,4 @@
-package com.franchise.api.service;
+package com.franchise.api.service.unit;
 
 import com.franchise.api.domain.Branch;
 import com.franchise.api.domain.Franchise;
@@ -14,6 +14,7 @@ import com.franchise.api.exception.BadRequestException;
 import com.franchise.api.exception.ConflictException;
 import com.franchise.api.exception.ResourceNotFoundException;
 import com.franchise.api.repository.FranchiseRepository;
+import com.franchise.api.service.FranchiseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +34,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class FranchiseServiceTest {
+class FranchiseServiceUnitTest {
 
     @Mock
     private FranchiseRepository franchiseRepository;

@@ -1,8 +1,12 @@
-package com.franchise.api.security;
+package com.franchise.api.security.unit;
 
 import com.franchise.api.dto.ForgotPasswordResponse;
 import com.franchise.api.dto.MessageResponse;
 import com.franchise.api.exception.BadRequestException;
+import com.franchise.api.security.PasswordResetService;
+import com.franchise.api.security.Role;
+import com.franchise.api.security.UserAccount;
+import com.franchise.api.security.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -22,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PasswordResetServiceTest {
+class PasswordResetServiceUnitTest {
 
     @Mock
     private UserAccountRepository repository;

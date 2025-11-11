@@ -444,6 +444,11 @@ La autenticacion se apoya en una coleccion separada `users` que almacena credenc
 
 > Documentar cualquier patron adicional (p. ej. guards y servicios en Angular) con enlaces a los archivos pertinentes del frontend.
 
+**Resumen arquitectonico**  
+- Backend monolitico siguiendo **arquitectura por capas**: controladores REST (exponen API), servicios (procesan reglas de negocio, forzado de cambio de contrasenia, flujos JWT), repositorios Spring Data MongoDB y capa de dominio/DTOs con mapeadores. Seguridad y excepciones se manejan via componentes transversales (JWT filter, `GlobalExceptionHandler`).  
+- Frontend Angular estructurado en **SPA modular** (core/shared vs features: `auth`, `franchises`, `admin/users`) con servicios HttpClient, guards y formularios reactivos → corresponde a un enfoque component-based/MVVM que desacopla UI y logica.  
+- Comunicación exclusiva via REST JSON, sin microservicios ni CQRS; la modularidad permite extender hacia microfrontends/microservicios en el futuro si se separan módulos clave.
+
 ## 8. Seguridad y roles
 
 - Login REST: `POST /api/v1/auth/login` retorna token JWT, roles y expiracin (`AuthController`).
@@ -475,5 +480,16 @@ La autenticacion se apoya en una coleccion separada `users` que almacena credenc
 3. Subir evidencias (capturas, videos, archivos Balsamiq) al repositorio o a un drive compartido.
 4. Validar coherencia de version entre backend y frontend y actualizar la tabla inicial.
 5. Compartir el enlace al repositorio, Figma y Maze en la plataforma de entrega oficial.
+
+## 10. Estrategia de pruebas automatizadas
+
+| Tipo | Herramienta / Alcance | Comando |
+| --- | --- | --- |
+| Unitarias backend | JUnit 5 + Mockito (`FranchiseService`, `PasswordResetService`, `UserManagementService`) | `mvn test` |
+| Integración backend | `@SpringBootTest` + MockMvc + Mongo embebido (`AuthControllerIT`, `FranchiseControllerIT`) | `mvn test` (incluye ambas capas) |
+| Unitarias frontend | Karma + Jasmine sobre componentes/servicios Angular | `npm run test` |
+| End-to-End frontend | Cypress (`cypress/e2e/auth-flow.cy.ts`: login, recuperación, cambio forzado de contraseña) con intercepts y verificación de UI responsive | `npm run e2e` (o `npm run cy:open` para modo interactivo) |
+
+> Recomendación: ejecutar `mvn test && npm run test && npm run e2e` antes de abrir un Pull Request. Los pipelines de CI deben revisar al menos las suites backend y frontend unitarias; los E2E pueden ejecutarse nightly o antes de releases.
 
 

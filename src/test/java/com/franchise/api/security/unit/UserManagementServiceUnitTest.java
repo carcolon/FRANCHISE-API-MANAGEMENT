@@ -1,4 +1,4 @@
-package com.franchise.api.security;
+package com.franchise.api.security.unit;
 
 import com.franchise.api.dto.CreateUserRequest;
 import com.franchise.api.dto.UpdateUserStatusRequest;
@@ -6,6 +6,10 @@ import com.franchise.api.dto.UserResponse;
 import com.franchise.api.exception.BadRequestException;
 import com.franchise.api.exception.ConflictException;
 import com.franchise.api.exception.ResourceNotFoundException;
+import com.franchise.api.security.Role;
+import com.franchise.api.security.UserAccount;
+import com.franchise.api.security.UserAccountRepository;
+import com.franchise.api.security.UserManagementService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -25,7 +29,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class UserManagementServiceTest {
+class UserManagementServiceUnitTest {
 
     @Mock
     private UserAccountRepository repository;

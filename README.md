@@ -49,6 +49,7 @@ API REST para administrar franquicias, sus sucursales y el inventario de product
 - Maven para construccion y gestion de dependencias
 - Docker y Docker Compose (opcional) para ejecucion contenerizada
 - Angular 17 (frontend en `franchise-management-ui/`)
+- Arquitectura: backend monolitico en **capas** (Controller → Service → Repository → MongoDB) con DTOs/Mapper y componentes transversales (security filter, exception handler); frontend SPA modular (core/services/guards, features desacopladas) siguiendo el esquema component-based/MVVM.
 
 ## Cliente web (Angular)
 
@@ -182,14 +183,14 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
 
 ## Pruebas
 
-Ejecutar pruebas unitarias:
-```bash
-mvn test
-```
-Generar paquete sin pruebas (build CI/CD):
-```bash
-mvn -DskipTests clean package
-```
+### Backend (unitarias + integracion)
+- `mvn test`: ejecuta las pruebas unitarias (`**/*UnitTest.java`).
+- `mvn verify -Pintegration-tests`: ejecuta solo las pruebas de integracion (`**/*IntegrationTest.java`) con Spring Boot + MockMvc + Mongo embebido.
+- `mvn -DskipTests clean package`: build sin pruebas.
+
+### Frontend
+- `npm run test`: suite Karma/Jasmine.
+- `npm run e2e`: levanta `ng serve` y corre Cypress headless (flujos auth). Para modo interactivo usa `npm run cy:open`.
 
 ## Estructura del proyecto
 
@@ -254,8 +255,15 @@ mvn -DskipTests clean package
 6. **Revisiones y merges**
    - Al incorporar comentarios, usa nuevos commits; evita `--force` salvo coordinacion previa.
    - Antes de mergear, haz `git pull --rebase origin master`, resuelve conflictos y vuelve a ejecutar pruebas.
-7. **Limpieza**
+7. **Convenciones de pruebas**
+   - Unitarias backend: archivos `*UnitTest.java`, se ejecutan con `mvn test`.
+   - Integracion backend: archivos `*IntegrationTest.java`, se ejecutan con `mvn verify -Pintegration-tests`.
+   - E2E Cypress: `cypress/e2e/*.cy.ts`, se ejecutan con `npm run e2e` (o `npm run cy:open`).
+8. **Limpieza**
    - Tras el merge, borra la rama remota y local (`git branch -d feature/...` y en GitHub → Delete Branch).
    - Documenta los cambios relevantes en README/`docs/entregaX.md` si aplica.
 
 > Tip VS Code: habilita “Auto Fetch” para mantenerse sincronizado; usa “GitLens” para historial y “Tasks” para scripts frecuentes (build/test).
+
+
+
