@@ -132,45 +132,128 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let user of users()">
-            <td>
-              <strong>{{ user.username }}</strong>
-              <span class="muted">ID: {{ user.id }}</span>
-            </td>
-            <td>{{ user.fullName }}</td>
-            <td>{{ user.email }}</td>
-            <td>
-              <span class="role-chip" *ngFor="let role of user.roles">{{ role }}</span>
-            </td>
-            <td>
-              <span class="status-chip" [class.inactive]="!user.active">
-                {{ user.active ? 'Activo' : 'Inactivo' }}
-              </span>
-            </td>
-            <td class="actions">
-              <ng-container *ngIf="!isCurrentUser(user); else selfNote">
-                <button
-                  type="button"
-                  class="ghost"
-                  (click)="toggleStatus(user)"
-                  [disabled]="isToggling(user.id)"
+          <ng-container *ngFor="let user of users()">
+            <tr>
+              <td>
+                <strong>{{ user.username }}</strong>
+                <span class="muted">ID: {{ user.id }}</span>
+              </td>
+              <td>{{ user.fullName }}</td>
+              <td>{{ user.email }}</td>
+              <td>
+                <span class="role-chip" *ngFor="let role of user.roles">{{ role }}</span>
+              </td>
+              <td>
+                <span class="status-chip" [class.inactive]="!user.active">
+                  {{ user.active ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="actions">
+                <ng-container *ngIf="!isCurrentUser(user); else selfNote">
+                  <button
+                    type="button"
+                    class="ghost"
+                    (click)="toggleStatus(user)"
+                    [disabled]="isToggling(user.id)"
+                  >
+                    {{ isToggling(user.id) ? 'Actualizando...' : user.active ? 'Desactivar' : 'Activar' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="ghost"
+                    (click)="togglePasswordForm(user.id)"
+                    [disabled]="isResetting(user.id)"
+                  >
+                    {{ isPasswordFormOpen(user.id) ? 'Cancelar cambio' : 'Cambiar contrasena' }}
+                  </button>
+                  <button
+                    type="button"
+                    class="danger"
+                    (click)="deleteUser(user)"
+                    [disabled]="isDeleting(user.id)"
+                  >
+                    {{ isDeleting(user.id) ? 'Eliminando...' : 'Eliminar' }}
+                  </button>
+                </ng-container>
+                <ng-template #selfNote>
+                  <span class="muted">Sesion activa</span>
+                </ng-template>
+              </td>
+            </tr>
+            <tr *ngIf="isPasswordFormOpen(user.id)" class="password-row">
+              <td colspan="6">
+                <form
+                  class="password-form"
+                  [formGroup]="getResetForm(user.id)"
+                  (ngSubmit)="onResetPassword(user)"
+                  novalidate
                 >
-                  {{ isToggling(user.id) ? 'Actualizando...' : user.active ? 'Desactivar' : 'Activar' }}
-                </button>
-                <button
-                  type="button"
-                  class="danger"
-                  (click)="deleteUser(user)"
-                  [disabled]="isDeleting(user.id)"
-                >
-                  {{ isDeleting(user.id) ? 'Eliminando...' : 'Eliminar' }}
-                </button>
-              </ng-container>
-              <ng-template #selfNote>
-                <span class="muted">Sesion activa</span>
-              </ng-template>
-            </td>
-          </tr>
+                  <div class="field-grid">
+                    <div class="field-group">
+                      <label for="new-password-{{ user.id }}">Nueva contrasena</label>
+                      <input
+                        id="new-password-{{ user.id }}"
+                        type="password"
+                        formControlName="newPassword"
+                        placeholder="********"
+                        [class.invalid]="
+                          getResetForm(user.id).controls['newPassword'].invalid &&
+                          getResetForm(user.id).controls['newPassword'].touched
+                        "
+                      />
+                      <div
+                        class="field-error"
+                        *ngIf="
+                          getResetForm(user.id).controls['newPassword'].invalid &&
+                          getResetForm(user.id).controls['newPassword'].touched
+                        "
+                      >
+                        <span>Debe tener al menos 8 caracteres.</span>
+                      </div>
+                    </div>
+                    <div class="field-group">
+                      <label for="confirm-password-{{ user.id }}">Confirmar contrasena</label>
+                      <input
+                        id="confirm-password-{{ user.id }}"
+                        type="password"
+                        formControlName="confirmPassword"
+                        placeholder="********"
+                        [class.invalid]="
+                          getResetForm(user.id).controls['confirmPassword'].invalid &&
+                          getResetForm(user.id).controls['confirmPassword'].touched
+                        "
+                      />
+                      <div
+                        class="field-error"
+                        *ngIf="
+                          getResetForm(user.id).controls['confirmPassword'].invalid &&
+                          getResetForm(user.id).controls['confirmPassword'].touched
+                        "
+                      >
+                        <span>Confirma la nueva contrasena.</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="field-error mismatch" *ngIf="hasPasswordMismatch(user.id)">
+                    Las contrasenas no coinciden.
+                  </p>
+                  <div class="password-actions">
+                    <button type="submit" class="primary small" [disabled]="isResetting(user.id)">
+                      {{ isResetting(user.id) ? 'Actualizando...' : 'Guardar contrasena' }}
+                    </button>
+                    <button
+                      type="button"
+                      class="ghost"
+                      (click)="togglePasswordForm(user.id)"
+                      [disabled]="isResetting(user.id)"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              </td>
+            </tr>
+          </ng-container>
         </tbody>
       </table>
     </div>

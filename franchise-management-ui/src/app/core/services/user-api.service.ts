@@ -25,4 +25,8 @@ export class UserApiService {
   delete(userId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/${userId}`);
   }
+
+  resetPassword(userId: string, newPassword: string): Observable<PortalUser> {
+    return this.http.post<PortalUser>(`${this.baseUrl}/${userId}/reset-password`, { newPassword });
+  }
 }

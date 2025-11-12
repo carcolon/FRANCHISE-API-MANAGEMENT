@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CreatePortalUserPayload, PortalUser } from '../../../core/models/user.model';
 import { UserApiService } from '../../../core/services/user-api.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -32,8 +32,12 @@ export class UserManagementComponent implements OnInit {
   readonly creating = signal(false);
   readonly toggling = signal<ToggleState>({});
   readonly deleting = signal<ToggleState>({});
+  readonly resetting = signal<ToggleState>({});
+  readonly passwordFormsOpen = signal<ToggleState>({});
+  readonly passwordMismatch = signal<ToggleState>({});
   readonly success = signal<string | null>(null);
   readonly error = signal<string | null>(null);
+  private readonly resetForms = new Map<string, FormGroup>();
 
   constructor(
     private readonly fb: FormBuilder,
@@ -122,6 +126,63 @@ export class UserManagementComponent implements OnInit {
     return this.deleting()[userId] ?? false;
   }
 
+  isResetting(userId: string): boolean {
+    return this.resetting()[userId] ?? false;
+  }
+
+  hasPasswordMismatch(userId: string): boolean {
+    return this.passwordMismatch()[userId] ?? false;
+  }
+
+  togglePasswordForm(userId: string): void {
+    const currentlyOpen = this.isPasswordFormOpen(userId);
+    if (!currentlyOpen) {
+      this.getResetForm(userId);
+    }
+    this.setPasswordFormOpen(userId, !currentlyOpen);
+  }
+
+  isPasswordFormOpen(userId: string): boolean {
+    return this.passwordFormsOpen()[userId] ?? false;
+  }
+
+  getResetForm(userId: string): FormGroup {
+    if (!this.resetForms.has(userId)) {
+      this.resetForms.set(userId, this.buildResetForm());
+    }
+    return this.resetForms.get(userId)!;
+  }
+
+  onResetPassword(user: PortalUser): void {
+    const form = this.getResetForm(user.id);
+    this.error.set(null);
+    this.success.set(null);
+    form.markAllAsTouched();
+    if (form.invalid) {
+      return;
+    }
+    const { newPassword, confirmPassword } = form.getRawValue() as { newPassword: string; confirmPassword: string };
+    if (newPassword !== confirmPassword) {
+      this.setPasswordMismatch(user.id, true);
+      return;
+    }
+    this.setPasswordMismatch(user.id, false);
+    this.setResetting(user.id, true);
+    this.userApi.resetPassword(user.id, newPassword).subscribe({
+      next: (updated) => {
+        const nextUsers = this.users().map((item) => (item.id === updated.id ? updated : item));
+        this.users.set(nextUsers);
+        this.success.set(`Contrasena de "${updated.username}" actualizada correctamente.`);
+        this.setResetting(user.id, false);
+        this.setPasswordFormOpen(user.id, false);
+      },
+      error: (err) => {
+        this.error.set(err?.error?.message ?? 'No fue posible actualizar la contrasena.');
+        this.setResetting(user.id, false);
+      }
+    });
+  }
+
   deleteUser(user: PortalUser): void {
     if (!confirm(`Eliminar al usuario "${user.username}"? Esta accion no se puede deshacer.`)) {
       return;
@@ -149,6 +210,33 @@ export class UserManagementComponent implements OnInit {
 
   getRolesLabel(user: PortalUser): string {
     return user.roles.join(', ');
+  }
+
+  private buildResetForm(): FormGroup {
+    return this.fb.nonNullable.group({
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
+    });
+  }
+
+  private setPasswordFormOpen(userId: string, value: boolean): void {
+    this.passwordFormsOpen.set({ ...this.passwordFormsOpen(), [userId]: value });
+    if (!value) {
+      const form = this.resetForms.get(userId);
+      form?.reset({
+        newPassword: '',
+        confirmPassword: ''
+      });
+      this.setPasswordMismatch(userId, false);
+    }
+  }
+
+  private setPasswordMismatch(userId: string, value: boolean): void {
+    this.passwordMismatch.set({ ...this.passwordMismatch(), [userId]: value });
+  }
+
+  private setResetting(userId: string, value: boolean): void {
+    this.resetting.set({ ...this.resetting(), [userId]: value });
   }
 
   private buildPayload(): CreatePortalUserPayload {
