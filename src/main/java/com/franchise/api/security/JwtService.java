@@ -101,9 +101,17 @@ public class JwtService {
         try {
             keyBytes = Decoders.BASE64.decode(secret);
         } catch (IllegalArgumentException ex) {
-            keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+            keyBytes = tryBase64UrlOrPlain(secret);
         }
         return ensureMinimumLength(keyBytes);
+    }
+
+    private byte[] tryBase64UrlOrPlain(String secret) {
+        try {
+            return Decoders.BASE64URL.decode(secret);
+        } catch (IllegalArgumentException ex) {
+            return secret.getBytes(StandardCharsets.UTF_8);
+        }
     }
 
     private byte[] ensureMinimumLength(byte[] input) {
