@@ -93,7 +93,19 @@ Si la API corre en otra direccion/puerto, actualiza `src/app/core/config/app-con
    java -version
    docker --version   # solo si se utilizara Docker
    ```
-4. Definir el secreto JWT (produccion): `setx JWT_SECRET "mi-secreto-ultra"` / `export JWT_SECRET="mi-secreto-ultra"` (por defecto se usa `change-me-in-production`).
+4. Definir el secreto JWT (produccion). Para evitar errores como `Illegal base64 character '-'` debes generar un valor aleatorio en Base64/Base64URL:
+   - PowerShell (Windows):
+     ```powershell
+     $bytes = New-Object byte[] 32
+     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+     $secret = [Convert]::ToBase64String($bytes)
+     setx JWT_SECRET $secret
+     ```
+   - Bash/Zsh (macOS/Linux):
+     ```bash
+     export JWT_SECRET="$(openssl rand -base64 32)"
+     ```
+     (añade la línea a `~/.zshrc` o `~/.bashrc` si quieres que sea permanente).
 
 ## Ejecucion local con Maven
 
@@ -264,6 +276,12 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
    - Documenta los cambios relevantes en README/`docs/entregaX.md` si aplica.
 
 > Tip VS Code: habilita “Auto Fetch” para mantenerse sincronizado; usa “GitLens” para historial y “Tasks” para scripts frecuentes (build/test).
+
+## Solucion de problemas (auth/JWT)
+
+- **Illegal base64 character '-'**: significa que `JWT_SECRET` contiene caracteres no válidos para Base64. Genera un secreto con los comandos anteriores (PowerShell u OpenSSL) antes de iniciar el backend. El servicio ya soporta Base64 y Base64URL, pero necesitas un valor nuevo después de clonar el repo.
+- **“JWT secret must be configured”**: la variable, secret o `.env` no está presente. Define `JWT_SECRET` antes de `mvn spring-boot:run` o de levantar Docker Compose.
+- **Olvidé el secreto**: basta con generar uno nuevo y reiniciar el backend; los tokens existentes quedarán invalidados automáticamente.
 
 
 
