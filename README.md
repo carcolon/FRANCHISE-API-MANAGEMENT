@@ -263,7 +263,7 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
    ```bash
    git push -u origin feature/nueva-funcion
    ```
-   Luego abre el PR en GitHub, describe alcance y pruebas realizadas.
+   Luego abre el PR en GitHub, describe alcance y pruebas realizadas
 6. **Revisiones y merges**
    - Al incorporar comentarios, usa nuevos commits; evita `--force` salvo coordinacion previa.
    - Antes de mergear, haz `git pull --rebase origin master`, resuelve conflictos y vuelve a ejecutar pruebas.
