@@ -281,7 +281,7 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
 
 - **Illegal base64 character '-'**: significa que `JWT_SECRET` contiene caracteres no válidos para Base64. Genera un secreto con los comandos anteriores (PowerShell u OpenSSL) antes de iniciar el backend. El servicio ya soporta Base64 y Base64URL, pero necesitas un valor nuevo después de clonar el repo.
 - **“JWT secret must be configured”**: la variable, secret o `.env` no está presente. Define `JWT_SECRET` antes de `mvn spring-boot:run` o de levantar Docker Compose.
-- **Olvidé el secreto**: basta con generar uno nuevo y reiniciar el backend; los tokens existentes quedarán invalidados automáticamente.
+- **Olvidé el secreto**: basta con generar uno nuevo y reiniciar el backend desde visual; los tokens existentes quedarán invalidados automáticamente.
 
 
 

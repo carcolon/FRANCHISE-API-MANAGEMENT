@@ -76,6 +76,21 @@ public class UserManagementService {
         repository.delete(account);
     }
 
+    public UserResponse resetPassword(String userId, String newPassword) {
+        if (!StringUtils.hasText(newPassword)) {
+            throw new BadRequestException("La nueva contrasena es obligatoria");
+        }
+        if (newPassword.length() < 8) {
+            throw new BadRequestException("La nueva contrasena debe tener al menos 8 caracteres");
+        }
+        UserAccount account = repository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario con id '%s' no encontrado".formatted(userId)));
+        account.setPassword(passwordEncoder.encode(newPassword));
+        account.setPasswordChangeRequired(true);
+        UserAccount saved = repository.save(account);
+        return toResponse(saved);
+    }
+
     private Set<Role> resolveRoles(Set<String> requestRoles) {
         if (requestRoles == null || requestRoles.isEmpty()) {
             return EnumSet.of(Role.USER);
