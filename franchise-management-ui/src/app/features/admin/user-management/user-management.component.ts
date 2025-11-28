@@ -73,7 +73,7 @@ export class UserManagementComponent implements OnInit {
     }
     const { password, confirmPassword } = this.createForm.getRawValue();
     if (password !== confirmPassword) {
-      this.error.set('Las contrasenas no coinciden.');
+      this.error.set('Las contraseñas no coinciden.');
       return;
     }
     const payload = this.buildPayload();
@@ -195,19 +195,19 @@ export class UserManagementComponent implements OnInit {
       next: (updated) => {
         const nextUsers = this.users().map((item) => (item.id === updated.id ? updated : item));
         this.users.set(nextUsers);
-        this.success.set(`Contrasena de "${updated.username}" actualizada correctamente.`);
+        this.success.set(`Contraseña de "${updated.username}" actualizada correctamente.`);
         this.setResetting(user.id, false);
         this.setPasswordFormOpen(user.id, false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'No fue posible actualizar la contrasena.');
+        this.error.set(err?.error?.message ?? 'No fue posible actualizar la contraseña.');
         this.setResetting(user.id, false);
       }
     });
   }
 
   deleteUser(user: PortalUser): void {
-    if (!confirm(`Eliminar al usuario "${user.username}"? Esta accion no se puede deshacer.`)) {
+    if (!confirm(`Eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
       return;
     }
     this.error.set(null);
