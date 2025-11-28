@@ -442,6 +442,11 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
 - OpenAPI JSON: http://localhost:8080/v3/api-docs
 - OpenAPI YAML: http://localhost:8080/v3/api-docs?format=yaml
 
+### Acceso en produccion
+
+- Backend (Swagger UI prod): https://franchise-api-management-prod.onrender.com/swagger-ui/index.html
+- Frontend (SPA Angular prod): https://franchise-api-management-ui-prod.onrender.com
+
 ## Pruebas
 
 ### Backend (unitarias + integracion)
