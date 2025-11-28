@@ -4,7 +4,7 @@ spring:
       uri: ${MONGODB_URI:?MONGODB_URI is required}
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 logging:
   level:
