@@ -3,6 +3,7 @@ import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { APP_CONFIG } from '../../../core/config/app-config';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,7 @@ export class LoginComponent {
   });
 
   readonly error = signal<string | null>(null);
+  readonly showDefaultCredentials = APP_CONFIG.showDefaultCredentials;
 
   constructor(
     private readonly fb: FormBuilder,

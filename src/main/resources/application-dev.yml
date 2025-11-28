@@ -1,0 +1,18 @@
+spring:
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://devadmin:devpass123@localhost:27017/franchise_dev?authSource=admin}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: INFO
+    com.franchise.api: DEBUG
+
+franchise:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-secret-change-me}
+      expiration-ms: ${JWT_EXPIRATION_MS:3600000}

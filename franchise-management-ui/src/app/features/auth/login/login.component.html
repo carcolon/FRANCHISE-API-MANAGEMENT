@@ -33,8 +33,8 @@
     </form>
 
     <p class="alert error" *ngIf="error()">{{ error() }}</p>
-    <p class="helper">
-      <strong>Credenciales por defecto:</strong><br />
+    <p class="helper" *ngIf="showDefaultCredentials">
+      <strong>Credenciales por defecto (solo dev):</strong><br />
       admin / Admin123!<br />
       analyst / Analyst123!
     </p>

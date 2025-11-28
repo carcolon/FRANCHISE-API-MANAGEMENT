@@ -1,19 +1,5 @@
 spring:
   application:
     name: franchise-api-management
-  data:
-    mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/franchise_db}
-server:
-  port: 8080
-
-logging:
-  level:
-    root: INFO
-    com.franchise.api: DEBUG
-
-franchise:
-  security:
-    jwt:
-      secret: ${JWT_SECRET:change-me-in-production}
-      expiration-ms: ${JWT_EXPIRATION_MS:3600000}
+  profiles:
+    default: dev

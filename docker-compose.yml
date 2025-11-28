@@ -5,18 +5,28 @@
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-devadmin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-devpass123}
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - mongo_data:/data/db
 
   franchise-api:
     build: .
+    restart: unless-stopped
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
     environment:
-      MONGODB_URI: mongodb://root:example@mongo:27017/franchise_db?authSource=admin
-      JWT_SECRET: Y2hhbmdlLW1lLWluLXByb2R1Y3Rpb24tMjAyNCEh
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://devadmin:devpass123@mongo:27017/franchise_dev?authSource=admin}
+      JWT_SECRET: ${JWT_SECRET:-ZGV2LXNlY3JldC1mcmFuY2hpc2UtYXBpLQ==}
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-3600000}
 
     ports:
       - "8080:8080"

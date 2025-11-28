@@ -1,5 +1,6 @@
 package com.franchise.api.controller;
 
+import com.franchise.api.dto.AdminResetPasswordRequest;
 import com.franchise.api.dto.CreateUserRequest;
 import com.franchise.api.dto.UpdateUserStatusRequest;
 import com.franchise.api.dto.UserResponse;
@@ -52,5 +53,11 @@ public class UserManagementController {
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
         userManagementService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{userId}/reset-password")
+    public ResponseEntity<UserResponse> resetPassword(@PathVariable String userId,
+                                                      @Valid @RequestBody AdminResetPasswordRequest request) {
+        return ResponseEntity.ok(userManagementService.resetPassword(userId, request.newPassword()));
     }
 }

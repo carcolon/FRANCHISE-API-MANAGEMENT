@@ -9,3 +9,6 @@
 *.iml
 *.log
 .mvn/wrapper/maven-wrapper.jar
+.env
+.env.*
+!.env.example

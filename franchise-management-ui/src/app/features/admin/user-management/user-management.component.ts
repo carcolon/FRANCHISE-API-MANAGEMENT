@@ -130,6 +130,7 @@ export class UserManagementComponent implements OnInit {
     return this.resetting()[userId] ?? false;
   }
 
+<<<<<<< HEAD
   hasPasswordMismatch(userId: string): boolean {
     return this.passwordMismatch()[userId] ?? false;
   }
@@ -142,6 +143,8 @@ export class UserManagementComponent implements OnInit {
     this.setPasswordFormOpen(userId, !currentlyOpen);
   }
 
+=======
+>>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
   isPasswordFormOpen(userId: string): boolean {
     return this.passwordFormsOpen()[userId] ?? false;
   }
@@ -153,11 +156,31 @@ export class UserManagementComponent implements OnInit {
     return this.resetForms.get(userId)!;
   }
 
+<<<<<<< HEAD
   onResetPassword(user: PortalUser): void {
     const form = this.getResetForm(user.id);
     this.error.set(null);
     this.success.set(null);
     form.markAllAsTouched();
+=======
+  togglePasswordForm(userId: string): void {
+    const nextValue = !this.isPasswordFormOpen(userId);
+    this.setPasswordFormOpen(userId, nextValue);
+    if (nextValue) {
+      this.getResetForm(userId);
+    }
+  }
+
+  hasPasswordMismatch(userId: string): boolean {
+    return this.passwordMismatch()[userId] ?? false;
+  }
+
+  onResetPassword(user: PortalUser): void {
+    const form = this.getResetForm(user.id);
+    form.markAllAsTouched();
+    this.error.set(null);
+    this.success.set(null);
+>>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
     if (form.invalid) {
       return;
     }
@@ -270,5 +293,32 @@ export class UserManagementComponent implements OnInit {
       roleAdmin: false,
       roleUser: true
     });
+  }
+
+  private buildResetForm(): FormGroup {
+    return this.fb.nonNullable.group({
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
+    });
+  }
+
+  private setResetting(userId: string, value: boolean): void {
+    this.resetting.set({ ...this.resetting(), [userId]: value });
+  }
+
+  private setPasswordFormOpen(userId: string, value: boolean): void {
+    this.passwordFormsOpen.set({ ...this.passwordFormsOpen(), [userId]: value });
+    if (!value) {
+      const form = this.resetForms.get(userId);
+      form?.reset({
+        newPassword: '',
+        confirmPassword: ''
+      });
+      this.setPasswordMismatch(userId, false);
+    }
+  }
+
+  private setPasswordMismatch(userId: string, value: boolean): void {
+    this.passwordMismatch.set({ ...this.passwordMismatch(), [userId]: value });
   }
 }

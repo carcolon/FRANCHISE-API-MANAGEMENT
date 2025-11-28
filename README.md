@@ -10,6 +10,7 @@ API REST para administrar franquicias, sus sucursales y el inventario de product
 - Panel de administracion de usuarios (`/users`) accesible solo para administradores:
   - Crear cuentas con nombre completo, correo y contrasena.
   - Asignar roles `ADMIN` y/o `USER`, activar/desactivar usuarios y eliminarlos definitivamente.
+  - Restablecer contrasenas de cuentas comprometidas directamente desde el panel (invoca `POST /api/v1/users/{userId}/reset-password`).
   - Forzar el cambio de contrasena en el primer inicio de sesion cuando se entrega una contrasena temporal.
 - Autenticacion basada en JWT con roles diferenciados: `ADMIN` (permisos totales) y `USER` (solo lectura). La interfaz es responsive: topbar, formularios y tablas se adaptan automaticamente a tablets y moviles.
 - Recuperacion de contrasenas con token temporal (15 min). La UI muestra el token, permite validarlo (`POST /api/v1/auth/validate-reset-token`) y habilita el cambio de contrasena (`POST /api/v1/auth/reset-password`).
@@ -64,6 +65,7 @@ El repositorio incluye una interfaz SaaS construida en Angular que consume esta 
    npm install
    npm start
    ```
+   - Para previsualizar el comportamiento de produccion (Angular en modo prod, rutas relativas y sin credenciales por defecto) ejecuta `npm run start:prod`.
 3. La UI quedara disponible en http://localhost:4200 y apunta por defecto a http://localhost:8080/api/v1.
 
 Para builds de produccion:
@@ -72,9 +74,9 @@ npm run build
 ```
 Los artefactos se generan en `franchise-management-ui/dist/franchise-management-ui`.
 
-Si la API corre en otra direccion/puerto, actualiza `src/app/core/config/app-config.ts` o exporta la variable correspondiente en tu pipeline.
+Si la API corre en otra direccion/puerto, ajusta `src/environments/environment*.ts` (dev/prod) o exporta la variable correspondiente en tu pipeline.
 
-> **Credenciales iniciales**: `admin / Admin123!` (rol ADMIN) y `analyst / Analyst123!` (solo lectura). Tras iniciar sesion se habilitan las funciones segun rol.
+> **Credenciales iniciales**: `admin / Admin123!` (rol ADMIN) y `analyst / Analyst123!` (solo lectura). Tras iniciar sesion se habilitan las funciones segun rol. La pantalla de login solo muestra estas cuentas cuando corres la SPA en modo desarrollo.
 
 ## Requisitos previos
 
@@ -86,7 +88,7 @@ Si la API corre en otra direccion/puerto, actualiza `src/app/core/config/app-con
 ## Configuracion rapida
 
 1. Clonar el repositorio.
-2. (Opcional) Crear un archivo `.env` o definir la variable `MONGODB_URI` si se desea apuntar a una instancia distinta (por ejemplo `mongodb://localhost:27017/franchise_db` o una URI con autenticacion).
+2. Duplica `.env.example` como `.env` y ajusta los valores segun tu entorno (el archivo `.env` esta ignorado en Git). Tambien puedes exportar las variables manualmente si prefieres no usar archivos.
 3. Verificar versiones:
    ```bash
    mvn -v
@@ -106,6 +108,252 @@ Si la API corre en otra direccion/puerto, actualiza `src/app/core/config/app-con
      export JWT_SECRET="$(openssl rand -base64 32)"
      ```
      (añade la línea a `~/.zshrc` o `~/.bashrc` si quieres que sea permanente).
+
+## Perfiles y configuraciones por entorno
+
+- `dev` (predeterminado): pensado para desarrollo local. Usa `application-dev.yml`, conecta por defecto a `mongodb://localhost:27017/franchise_dev` (puedes redefinir `MONGODB_URI` si utilizas usuarios/contraseñas, Docker, etc.) y asigna un `JWT_SECRET` Base64 de prueba si no existe.
+- `prod`: no define valores por defecto, exige que `MONGODB_URI` y `JWT_SECRET` vengan del entorno o del gestor de secretos. El archivo `application-prod.yml` unicamente referencia esas variables.
+
+Para desplegar en otro ambiente ajusta la variable `SPRING_PROFILES_ACTIVE`. Ejemplos:
+- Local/development (default): no hagas nada o exporta `SPRING_PROFILES_ACTIVE=dev`.
+- Produccion: `SPRING_PROFILES_ACTIVE=prod` y define `MONGODB_URI`, `JWT_SECRET`, `JWT_EXPIRATION_MS`, `SERVER_PORT`, etc.
+
+El `docker-compose.yml` provisto en el repo esta pensado solo para desarrollo y levanta la API con el perfil `dev`, credenciales ficticias (`devadmin/devpass123`) y un JWT secreto de laboratorio. Todos estos valores se leen desde `.env`; no reutilices el archivo de ejemplo en ambientes reales y define tus propias variables en el servidor/CI.
+
+### Manejo de secretos
+
+- No compartas ni subas el archivo `.env` real (solo `.env.example` vive en el repositorio).  
+- En pipelines o servidores configura `MONGODB_URI`, `JWT_SECRET`, etc., como variables/protected secrets.  
+- Si necesitas diferentes valores por entorno, crea archivos `.env.dev`, `.env.staging`, etc., sin rastrearlos en Git y cargalos segun corresponda (`docker compose --env-file .env.staging up`).  
+- Ante cualquier filtracion, genera credenciales nuevas inmediatamente y actualiza las variables correspondientes.
+
+## Guia paso a paso por entorno
+
+### 1. Preparar archivos `.env`
+
+1. Duplica alguno de los archivos provistos segun el ambiente:
+   - Desarrollo: `cp .env.dev .env.local` (Bash) o `Copy-Item .env.dev .env.local` (PowerShell).
+   - Produccion: `cp .env.prod .env.prod.local` o el nombre que prefieras.
+2. Edita el archivo duplicado con tus valores reales:
+   - `MONGODB_URI`: URI completa con usuario, password y base (`franchise_dev`, `franchise_prod`, etc.).
+   - `JWT_SECRET`: cadena Base64/Base64URL; genera una nueva para cada ambiente.
+   - `SPRING_PROFILES_ACTIVE`: `dev` para desarrollo, `prod` para despliegues reales.
+   - `SERVER_PORT`, `JWT_EXPIRATION_MS` y cualquier otra variable que quieras personalizar.
+3. Nunca hagas `git add` de esos archivos. Cargalos manualmente cuando ejecutes Maven, Java o Docker Compose:
+   - Bash/Zsh: `set -a && source .env.local && set +a`.
+   - PowerShell (solo para la sesion actual):
+     ```powershell
+     Get-Content .env.dev | ForEach-Object {
+       if ($_ -and $_ -notmatch '^#') {
+         $k,$v = $_ -split '=',2
+         [Environment]::SetEnvironmentVariable($k,$v,'Process')
+       }
+     }
+     ```
+   - Cambiar de perfil en PowerShell:
+     ```powershell
+     # Cambiar a desarrollo
+     Remove-Item Env:SPRING_PROFILES_ACTIVE -ErrorAction Ignore
+     Get-Content .env.dev | ForEach-Object {
+       if ($_ -and $_ -notmatch '^#') {
+         $k,$v = $_ -split '=',2
+         [Environment]::SetEnvironmentVariable($k,$v,'Process')
+       }
+     }
+     mvn spring-boot:run
+
+     # Cambiar a produccion
+     Remove-Item Env:SPRING_PROFILES_ACTIVE -ErrorAction Ignore
+     Get-Content .env.prod | ForEach-Object {
+       if ($_ -and $_ -notmatch '^#') {
+         $k,$v = $_ -split '=',2
+         [Environment]::SetEnvironmentVariable($k,$v,'Process')
+       }
+     }
+     mvn spring-boot:run
+     ```
+   - Si prefieres mantener los archivos separados (`.env.dev.local`, `.env.prod.local`), cambia el nombre en los comandos anteriores. Lo importante es limpiar `SPRING_PROFILES_ACTIVE` antes de cargar el archivo nuevo para evitar que el backend siga arrancando con el perfil anterior.
+
+> Consejo: adopta una convencion (`.env.dev.local`, `.env.prod.local`) y documenta donde estan guardados (por ejemplo, un gestor de secretos).
+
+### 2. Desarrollo (`dev`) con Docker Compose
+
+1. Carga las variables: `docker compose --env-file .env.dev config >/dev/null` para validar que todas existen. (Si usas `.env.local`, ajusta el nombre).
+2. Arranca los servicios:
+   ```bash
+   docker compose --env-file .env.dev up --build -d
+   ```
+   - `mongo` inicia con el usuario definido (`MONGO_INITDB_ROOT_USERNAME/MONGO_INITDB_ROOT_PASSWORD`).
+   - `franchise-api` se construye (Dockerfile) y arranca con `SPRING_PROFILES_ACTIVE=dev`.
+3. Comprueba el estado:
+   - `docker compose ps` debe mostrar ambos contenedores `healthy`.
+   - `docker compose logs -f franchise-api` hasta leer `Started FranchiseApiManagementApplication`.
+   - `curl http://localhost:${SERVER_PORT:-8080}/actuator/health`.
+4. Levanta el frontend en paralelo:
+   ```bash
+   cd franchise-management-ui
+   npm install
+   npm start
+   ```
+   Cambia `src/app/core/config/app-config.ts` si el backend usa otro host/puerto.
+5. Para detener todo: `docker compose --env-file .env.dev.local down` (agrega `-v` para borrar `mongo_data`).
+
+> ¿Cambiar de dev a prod con Docker? Usa distintos archivos `.env.*` y especifica el que corresponda en cada comando. Ejemplo:  
+> ```bash
+> docker compose --env-file .env.prod up --build -d      # levanta prod
+> docker compose --env-file .env.prod down               # detiene prod
+> docker compose --env-file .env.dev up --build -d       # vuelve a dev
+> ```  
+> Como cada `--env-file` carga sus variables al vuelo, no necesitas limpiar `SPRING_PROFILES_ACTIVE`; solo asegúrate de derribar los contenedores anteriores antes de levantar el siguiente perfil.
+
+### 3. Desarrollo (`dev`) sin contenedores (Maven + Mongo local)
+
+1. Asegurate de tener una instancia de Mongo corriendo:
+   - Docker: `docker run -d --name mongo-dev -p 27017:27017 -e MONGO_INITDB_ROOT_USERNAME=devadmin -e MONGO_INITDB_ROOT_PASSWORD=devpass123 mongo:7.0`.
+   - Servicio local: instala MongoDB Community Server y crea el usuario/BD.
+2. Exporta las variables del archivo `.env.local` (ver paso 1) para que Spring pueda leerlas.
+3. Ejecuta la aplicacion:
+   ```bash
+   mvn spring-boot:run
+   ```
+   - Maven usa `application-dev.yml` y se conecta usando `MONGODB_URI`.
+   - Los logs aparecen en la misma terminal; presiona `Ctrl+C` para detener.
+4. Verifica:
+   - `curl http://localhost:${SERVER_PORT:-8080}/api/v1/franchises`.
+   - Inicia sesion en la SPA (`admin/Admin123!`) y revisa que puedas listar franquicias.
+
+### 4. Produccion (`prod`) empaquetando el JAR
+
+1. Compila el backend:
+   ```bash
+   mvn clean package -DskipTests
+   ```
+   El artefacto queda en `target/franchise-api-management-0.0.1-SNAPSHOT.jar`.
+2. Copia el `.jar` y tu `.env.prod.local` al servidor (ejemplo `scp target/... user@host:/opt/franchise`).
+3. En el servidor:
+   - Carga las variables (`set -a && source .env.prod.local && set +a` en Linux, comando PowerShell mostrado arriba en Windows).
+   - Comprueba que `SPRING_PROFILES_ACTIVE=prod` y que `MONGODB_URI/JWT_SECRET` apuntan al cluster real.
+4. Ejecuta el servicio:
+   ```bash
+   java -jar target/franchise-api-management-0.0.1-SNAPSHOT.jar
+   ```
+   - Para dejarlo corriendo en segundo plano: `nohup java -jar ... > app.log 2>&1 &` (Linux) o `Start-Process -NoNewWindow -FilePath "java" -ArgumentList "-jar", ...` (Windows).
+   - Considera crear un servicio `systemd` o `nssm` para reinicios automaticos.
+5. Checklist de verificacion:
+   - `curl https://tu-dominio/actuator/health`.
+   - Revisar logs (`tail -f app.log`).
+   - Ejecutar una autenticacion contra `/api/v1/auth/login`.
+
+### 5. Produccion con Docker Compose
+
+1. Edita la copia de `.env` para que defina el perfil `prod` y todas las variables sensibles (no reutilices los valores de desarrollo).
+2. Construye y arranca:
+   ```bash
+   docker compose --env-file .env.prod.local up --build -d
+   ```
+   - Puedes intercambiar la referencia a Mongo por una base administrada exponiendo `MONGODB_URI` (por ejemplo, Atlas).
+   - Si no necesitas Mongo embebido, elimina el servicio `mongo` del compose y deja solo `franchise-api`.
+3. Valida:
+   - `docker compose logs -f franchise-api` debe mostrar `Profiles active: prod`.
+   - Ejecuta `docker exec -it franchise-api env | Select-String SPRING_PROFILES_ACTIVE` (PowerShell) o `grep` en Bash para confirmar.
+   - Ajusta `SERVER_PORT` y el mapeo `ports` para servir en el puerto requerido (por ejemplo `8443:8443` detras de un proxy TLS).
+4. Actualiza la imagen cuando publiques una nueva version:
+   ```bash
+   git pull
+   mvn clean package -DskipTests
+   docker compose --env-file .env.prod.local build franchise-api
+   docker compose --env-file .env.prod.local up -d franchise-api
+   ```
+   Esto recrea unicamente el servicio de la API con el nuevo binario.
+
+## Backend: ejecucion por perfil
+
+### Desarrollo (`dev`)
+
+1. Copia la plantilla y ajusta valores si hace falta:
+   ```bash
+   cp .env.dev .env.local   # Bash/macOS/Linux
+   # Copy-Item .env.dev .env.local  # PowerShell
+   ```
+2. Carga las variables en tu shell (o usa tu IDE para inyectarlas).
+3. Ejecuta la aplicacion:
+   ```bash
+   mvn spring-boot:run
+   ```
+   - Spring usara `application-dev.yml` y el perfil `dev` automaticamente (`SPRING_PROFILES_ACTIVE=dev`).
+   - Puedes comprobar el perfil en los logs: `Profiles active: dev`.
+4. Verifica salud:
+   ```bash
+   curl http://localhost:${SERVER_PORT:-8080}/actuator/health
+   ```
+
+### Produccion (`prod`)
+
+1. Prepara las variables reales en un archivo (por ejemplo `.env.prod.local`) con `SPRING_PROFILES_ACTIVE=prod`, `MONGODB_URI`, `JWT_SECRET`, etc.
+2. Construye el paquete:
+   ```bash
+   mvn clean package -DskipTests
+   ```
+3. Copia el `.jar` (y tu archivo `.env`) al servidor destino.
+4. En el servidor, exporta las variables y arranca:
+   ```bash
+   set -a && source .env.prod.local && set +a   # Bash/Linux
+   java -jar target/franchise-api-management-0.0.1-SNAPSHOT.jar
+   ```
+   En Windows/PowerShell usa el snippet indicado antes para cargar variables y `Start-Process` si quieres dejarlo en background.
+5. Comprueba:
+   ```bash
+   curl https://tu-dominio/actuator/health
+   ```
+   Los logs deben mostrar `Profiles active: prod`.
+
+## Flujo local de desarrollo
+
+### Escenario 1: todo con Docker
+1. **Levanta backend + Mongo**  
+   ```bash
+   docker compose up --build -d
+   ```  
+   - Mongo queda disponible en `mongodb://root:example@localhost:27017/?authSource=admin`.  
+   - La API corre en `http://localhost:8080` usando las variables definidas en `docker-compose.yml`.
+2. **Verifica salud**  
+   - `docker compose ps` para revisar contenedores.  
+   - `docker compose logs -f franchise-api` hasta ver `Started FranchiseApiManagementApplication`.
+3. **Frontend Angular**  
+   ```bash
+   cd franchise-management-ui
+   npm install
+   npm start
+   ```  
+   La SPA queda en `http://localhost:4200` consumiendo `http://localhost:8080/api/v1`.
+4. **Apaga todo**  
+   ```bash
+   docker compose down
+   ```  
+   (agrega `-v` si quieres borrar el volumen `mongo_data`).
+
+### Escenario 2: servicios locales
+1. **MongoDB**  
+   - Usa tu instalacion local o ejecuta `docker run -d --name mongo-dev -p 27017:27017 mongo:7.0`.  
+   - Actualiza `MONGODB_URI` si requieres usuario/clave.
+2. **Backend Spring Boot**  
+   ```bash
+   mvn spring-boot:run
+   ```  
+   - Lee `MONGODB_URI`, `JWT_SECRET` y `JWT_EXPIRATION_MS` desde el entorno o de `src/main/resources/application.yml`.  
+   - Alternativa: `mvn clean package` seguido de `java -jar target/franchise-api-management-0.0.1-SNAPSHOT.jar`.
+3. **Frontend Angular** (en otra terminal)  
+   ```bash
+   cd franchise-management-ui
+   npm install   # primera vez
+   npm start
+   ```  
+   Cambia `src/app/core/config/app-config.ts` si el backend corre en otro host/puerto.
+4. **Validaciones rapidas**  
+   - `curl http://localhost:8080/actuator/health` o abre Swagger (`/swagger-ui.html`).  
+   - Inicia sesion en la SPA con `admin / Admin123!` y verifica que puedes listar franquicias.
+
+> Consejo: puedes mezclar ambos enfoques (por ejemplo, Mongo en Docker, backend local). Solo ajusta `MONGODB_URI` para que apunte al servicio correcto.
 
 ## Ejecucion local con Maven
 
@@ -182,6 +430,7 @@ Se puede sobrescribir mediante variable de entorno `MONGODB_URI` o propiedades d
 | Usuarios | GET | /api/v1/users | Lista usuarios registrados (solo ADMIN) |
 | Usuarios | POST | /api/v1/users | Crea un nuevo usuario con roles asignados (solo ADMIN) |
 | Usuarios | PATCH | /api/v1/users/{userId}/status | Activa o desactiva un usuario (solo ADMIN) |
+| Usuarios | POST | /api/v1/users/{userId}/reset-password | Restablece la contrasena de un usuario (solo ADMIN) |
 | Usuarios | DELETE | /api/v1/users/{userId} | Elimina un usuario (solo ADMIN) |
 | Auth | POST | /api/v1/auth/forgot-password | Genera token temporal de recuperacion |
 | Auth | POST | /api/v1/auth/validate-reset-token | Valida vigencia del token de recuperacion |
