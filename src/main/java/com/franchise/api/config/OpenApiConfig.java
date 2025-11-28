@@ -18,10 +18,10 @@ public class OpenApiConfig {
                         .description("API para gestion de franquicias, sucursales y productos")
                         .version("v1.0.0")
                         .contact(new Contact()
-                                .name("Tu Nombre")
-                                .email("tu.email@dominio.com")))
+                                .name("Carlos")
+                                .email("cfca5@hotmail.com")))
                 .externalDocs(new ExternalDocumentation()
                         .description("Repositorio del proyecto")
-                        .url("https://github.com/tu-usuario/tu-repo"));
+                        .url("https://github.com/carcolon/FRANCHISE-API-MANAGEMENT/"));
     }
 }
