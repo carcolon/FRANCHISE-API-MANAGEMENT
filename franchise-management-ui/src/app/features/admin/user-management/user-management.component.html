@@ -160,16 +160,12 @@
                   </button>
                   <button
                     type="button"
-                    class="ghost"
-                    (click)="togglePasswordForm(user.id)"
-                    [disabled]="isResetting(user.id)"
-                  >
-<<<<<<< HEAD
+                  class="ghost"
+                  (click)="togglePasswordForm(user.id)"
+                  [disabled]="isResetting(user.id)"
+                >
                     {{ isPasswordFormOpen(user.id) ? 'Cancelar cambio' : 'Cambiar contrasena' }}
-=======
-                    {{ isPasswordFormOpen(user.id) ? 'Cancelar' : 'Cambiar contrasena' }}
->>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
-                  </button>
+                </button>
                   <button
                     type="button"
                     class="danger"
@@ -194,15 +190,9 @@
                 >
                   <div class="field-grid">
                     <div class="field-group">
-<<<<<<< HEAD
                       <label for="new-password-{{ user.id }}">Nueva contrasena</label>
                       <input
                         id="new-password-{{ user.id }}"
-=======
-                      <label for="reset-password-{{ user.id }}">Nueva contrasena</label>
-                      <input
-                        id="reset-password-{{ user.id }}"
->>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
                         type="password"
                         formControlName="newPassword"
                         placeholder="********"
@@ -222,15 +212,9 @@
                       </div>
                     </div>
                     <div class="field-group">
-<<<<<<< HEAD
                       <label for="confirm-password-{{ user.id }}">Confirmar contrasena</label>
                       <input
                         id="confirm-password-{{ user.id }}"
-=======
-                      <label for="reset-confirm-{{ user.id }}">Confirmar</label>
-                      <input
-                        id="reset-confirm-{{ user.id }}"
->>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
                         type="password"
                         formControlName="confirmPassword"
                         placeholder="********"
@@ -246,11 +230,7 @@
                           getResetForm(user.id).controls['confirmPassword'].touched
                         "
                       >
-<<<<<<< HEAD
                         <span>Confirma la nueva contrasena.</span>
-=======
-                        <span>Confirma la contrasena.</span>
->>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
                       </div>
                     </div>
                   </div>
@@ -259,11 +239,7 @@
                   </p>
                   <div class="password-actions">
                     <button type="submit" class="primary small" [disabled]="isResetting(user.id)">
-<<<<<<< HEAD
                       {{ isResetting(user.id) ? 'Actualizando...' : 'Guardar contrasena' }}
-=======
-                      {{ isResetting(user.id) ? 'Actualizando...' : 'Guardar' }}
->>>>>>> 5c1ca9c (feat: admin reset y perfiles front/back sincronizados)
                     </button>
                     <button
                       type="button"
