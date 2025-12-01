@@ -16,6 +16,7 @@
 }
 
 .topbar-inner {
+  width: 100%;
   max-width: 1200px;
   margin: 0 auto;
   padding: 0.75rem 1.25rem;
@@ -174,6 +175,8 @@ nav a:hover {
   }
 
   .topbar-inner {
+    width: 100%;
+    max-width: 100%;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -186,11 +189,11 @@ nav a:hover {
     flex-direction: row;
     align-items: center;
     gap: 0.25rem;
-    flex: 1 1 160px;
+    flex: 1 1 170px;
   }
 
   nav {
-    flex: 2 1 200px;
+    flex: 1 1 160px;
     justify-content: flex-start;
     gap: 0.35rem;
     overflow-x: auto;
