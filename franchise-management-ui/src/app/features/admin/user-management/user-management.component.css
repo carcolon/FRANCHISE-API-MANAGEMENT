@@ -9,6 +9,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
@@ -198,6 +199,7 @@ input.invalid {
 
 table {
   width: 100%;
+  min-width: 720px;
   border-collapse: collapse;
 }
 
@@ -316,7 +318,65 @@ tbody tr {
 }
 
 @media (max-width: 1100px) {
+  :host {
+    padding: 1.5rem;
+  }
+
   .layout {
     grid-template-columns: 1fr;
+  }
+
+  table {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 768px) {
+  :host {
+    padding: 1.25rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .form-card,
+  .list-card {
+    padding: 1.5rem;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  table {
+    min-width: 560px;
+  }
+}
+
+@media (max-width: 540px) {
+  :host {
+    padding: 1rem;
+  }
+
+  .primary,
+  .ghost,
+  .danger {
+    width: 100%;
+    text-align: center;
+  }
+
+  .password-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  table {
+    min-width: 520px;
   }
 }
