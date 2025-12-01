@@ -73,7 +73,7 @@ export class UserManagementComponent implements OnInit {
     }
     const { password, confirmPassword } = this.createForm.getRawValue();
     if (password !== confirmPassword) {
-      this.error.set('Las contraseñas no coinciden.');
+      this.error.set('Las contrasenas no coinciden.');
       return;
     }
     const payload = this.buildPayload();
@@ -130,21 +130,6 @@ export class UserManagementComponent implements OnInit {
     return this.resetting()[userId] ?? false;
   }
 
- chore/responsive-ui-fixes
-
-  hasPasswordMismatch(userId: string): boolean {
-    return this.passwordMismatch()[userId] ?? false;
-  }
-
-  togglePasswordForm(userId: string): void {
-    const nextValue = !this.isPasswordFormOpen(userId);
-    if (nextValue) {
-      this.getResetForm(userId);
-    }
-    this.setPasswordFormOpen(userId, nextValue);
-  }
-
- master
   isPasswordFormOpen(userId: string): boolean {
     return this.passwordFormsOpen()[userId] ?? false;
   }
@@ -156,7 +141,6 @@ export class UserManagementComponent implements OnInit {
     return this.resetForms.get(userId)!;
   }
 
- chore/responsive-ui-fixes
   togglePasswordForm(userId: string): void {
     const nextValue = !this.isPasswordFormOpen(userId);
     this.setPasswordFormOpen(userId, nextValue);
@@ -174,13 +158,6 @@ export class UserManagementComponent implements OnInit {
     form.markAllAsTouched();
     this.error.set(null);
     this.success.set(null);
-
-  onResetPassword(user: PortalUser): void {
-    const form = this.getResetForm(user.id);
-    this.error.set(null);
-    this.success.set(null);
-    form.markAllAsTouched();
- master
     if (form.invalid) {
       return;
     }
@@ -195,19 +172,19 @@ export class UserManagementComponent implements OnInit {
       next: (updated) => {
         const nextUsers = this.users().map((item) => (item.id === updated.id ? updated : item));
         this.users.set(nextUsers);
-        this.success.set(`Contraseña de "${updated.username}" actualizada correctamente.`);
+        this.success.set(`Contrasena de "${updated.username}" actualizada correctamente.`);
         this.setResetting(user.id, false);
         this.setPasswordFormOpen(user.id, false);
       },
       error: (err) => {
-        this.error.set(err?.error?.message ?? 'No fue posible actualizar la contraseña.');
+        this.error.set(err?.error?.message ?? 'No fue posible actualizar la contrasena.');
         this.setResetting(user.id, false);
       }
     });
   }
 
   deleteUser(user: PortalUser): void {
-    if (!confirm(`Eliminar al usuario "${user.username}"? Esta acción no se puede deshacer.`)) {
+    if (!confirm(`Eliminar al usuario "${user.username}"? Esta accion no se puede deshacer.`)) {
       return;
     }
     this.error.set(null);
