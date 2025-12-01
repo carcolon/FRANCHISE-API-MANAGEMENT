@@ -178,7 +178,7 @@ El `docker-compose.yml` provisto en el repo esta pensado solo para desarrollo y 
 
 ### 2. Desarrollo (`dev`) con Docker Compose
 
-1. Carga las variables: `docker compose --env-file .env.dev config >/dev/null` para validar que todas existen. (Si usas `.env.local`, ajusta el nombre).
+1. Carga las variables: `docker compose --env-file .env.dev config >/dev/null` para validar que todas existen. (Si usas `.env.dev`, ajusta el nombre).
 2. Arranca los servicios:
    ```bash
    docker compose --env-file .env.dev up --build -d

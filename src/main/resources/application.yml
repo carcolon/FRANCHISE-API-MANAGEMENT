@@ -3,3 +3,13 @@ spring:
     name: franchise-api-management
   profiles:
     default: dev
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
