@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 interface ToggleState {
   [userId: string]: boolean;
 }
-/* jfjfh*/
+
 @Component({
   selector: 'app-user-management',
   standalone: true,
