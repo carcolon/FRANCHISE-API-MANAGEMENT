@@ -130,6 +130,8 @@ export class UserManagementComponent implements OnInit {
     return this.resetting()[userId] ?? false;
   }
 
+ chore/responsive-ui-fixes
+
   hasPasswordMismatch(userId: string): boolean {
     return this.passwordMismatch()[userId] ?? false;
   }
@@ -142,6 +144,7 @@ export class UserManagementComponent implements OnInit {
     this.setPasswordFormOpen(userId, nextValue);
   }
 
+ master
   isPasswordFormOpen(userId: string): boolean {
     return this.passwordFormsOpen()[userId] ?? false;
   }
@@ -153,11 +156,31 @@ export class UserManagementComponent implements OnInit {
     return this.resetForms.get(userId)!;
   }
 
+ chore/responsive-ui-fixes
+  togglePasswordForm(userId: string): void {
+    const nextValue = !this.isPasswordFormOpen(userId);
+    this.setPasswordFormOpen(userId, nextValue);
+    if (nextValue) {
+      this.getResetForm(userId);
+    }
+  }
+
+  hasPasswordMismatch(userId: string): boolean {
+    return this.passwordMismatch()[userId] ?? false;
+  }
+
+  onResetPassword(user: PortalUser): void {
+    const form = this.getResetForm(user.id);
+    form.markAllAsTouched();
+    this.error.set(null);
+    this.success.set(null);
+
   onResetPassword(user: PortalUser): void {
     const form = this.getResetForm(user.id);
     this.error.set(null);
     this.success.set(null);
     form.markAllAsTouched();
+ master
     if (form.invalid) {
       return;
     }
