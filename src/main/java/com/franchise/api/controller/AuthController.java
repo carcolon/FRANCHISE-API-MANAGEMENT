@@ -77,3 +77,6 @@ public class AuthController {
                 request.currentPassword(), request.newPassword()));
     }
 }
+
+/* test commit
+ */
